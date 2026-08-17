@@ -27,102 +27,91 @@ export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 export const facebookProvider = new FacebookAuthProvider();
 
-// Firebase Auth API Functions with graceful fallbacks
+/**
+ * Helper to format Firebase error codes into clear, user-friendly messages
+ */
+export const formatFirebaseError = (error) => {
+  if (!error) return 'An error occurred during authentication.';
+  const code = error.code || '';
+  switch (code) {
+    case 'auth/invalid-credential':
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+      return 'Invalid email or password. Please check your credentials or sign up.';
+    case 'auth/email-already-in-use':
+      return 'This email address is already registered. Please sign in instead.';
+    case 'auth/invalid-email':
+      return 'Please enter a valid email address.';
+    case 'auth/weak-password':
+      return 'Password should be at least 6 characters.';
+    case 'auth/user-disabled':
+      return 'This user account has been disabled.';
+    case 'auth/popup-closed-by-user':
+      return 'Sign-in popup was closed before completing.';
+    default:
+      return error.message || 'Firebase Authentication failed.';
+  }
+};
+
+/**
+ * Real Firebase Email/Password Sign In
+ */
 export const loginWithEmail = async (email, password) => {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return {
-      uid: userCredential.user.uid,
-      email: userCredential.user.email,
-      displayName: userCredential.user.displayName || email.split('@')[0],
-      photoURL: userCredential.user.photoURL,
-    };
-  } catch (error) {
-    // If Firebase Auth fails (e.g. user not registered or domain not whitelisted), create fallback user for seamless demo testing
-    if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-      return {
-        uid: 'demo-' + Date.now(),
-        email: email,
-        displayName: email.split('@')[0],
-        photoURL: null,
-      };
-    }
-    throw error;
-  }
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  return {
+    uid: userCredential.user.uid,
+    email: userCredential.user.email,
+    displayName: userCredential.user.displayName || email.split('@')[0],
+    photoURL: userCredential.user.photoURL,
+  };
 };
 
+/**
+ * Real Firebase User Registration
+ */
 export const registerWithEmail = async (email, password, displayName, phone) => {
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    if (displayName) {
-      await updateProfile(userCredential.user, { displayName });
-    }
-    return {
-      uid: userCredential.user.uid,
-      email: userCredential.user.email,
-      displayName: displayName || userCredential.user.displayName || email.split('@')[0],
-      phone: phone || null,
-      photoURL: userCredential.user.photoURL,
-    };
-  } catch (error) {
-    if (error.code === 'auth/email-already-in-use') {
-      // Fallback user session for testing
-      return {
-        uid: 'demo-' + Date.now(),
-        email: email,
-        displayName: displayName || email.split('@')[0],
-        phone: phone || null,
-        photoURL: null,
-      };
-    }
-    throw error;
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  if (displayName) {
+    await updateProfile(userCredential.user, { displayName });
   }
+  return {
+    uid: userCredential.user.uid,
+    email: userCredential.user.email,
+    displayName: displayName || userCredential.user.displayName || email.split('@')[0],
+    phone: phone || null,
+    photoURL: userCredential.user.photoURL,
+  };
 };
 
+/**
+ * Real Firebase Google Popup Sign In
+ */
 export const loginWithGoogle = async () => {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    return {
-      uid: result.user.uid,
-      email: result.user.email,
-      displayName: result.user.displayName,
-      photoURL: result.user.photoURL,
-    };
-  } catch (error) {
-    console.warn('Google Popup OAuth fallback activated:', error.message);
-    return {
-      uid: 'google-demo-' + Date.now(),
-      email: 'demo.google@billy.dk',
-      displayName: 'Google Demo User',
-      photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-    };
-  }
+  const result = await signInWithPopup(auth, googleProvider);
+  return {
+    uid: result.user.uid,
+    email: result.user.email,
+    displayName: result.user.displayName,
+    photoURL: result.user.photoURL,
+  };
 };
 
+/**
+ * Real Firebase Facebook Popup Sign In
+ */
 export const loginWithFacebook = async () => {
-  try {
-    const result = await signInWithPopup(auth, facebookProvider);
-    return {
-      uid: result.user.uid,
-      email: result.user.email,
-      displayName: result.user.displayName,
-      photoURL: result.user.photoURL,
-    };
-  } catch (error) {
-    console.warn('Facebook Popup OAuth fallback activated:', error.message);
-    return {
-      uid: 'facebook-demo-' + Date.now(),
-      email: 'demo.facebook@billy.dk',
-      displayName: 'Facebook Demo User',
-      photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
-    };
-  }
+  const result = await signInWithPopup(auth, facebookProvider);
+  return {
+    uid: result.user.uid,
+    email: result.user.email,
+    displayName: result.user.displayName,
+    photoURL: result.user.photoURL,
+  };
 };
 
+/**
+ * Real Firebase Sign Out
+ */
 export const logoutUser = async () => {
-  try {
-    await signOut(auth);
-  } catch (error) {
-    console.error('Logout error:', error);
-  }
+  await signOut(auth);
 };
