@@ -70,20 +70,18 @@ export default function Newinvoice() {
   // 4. Currency Query (/api/currency)
   const { data: currencyData, isLoading: currencyLoading } = useGetCurrenciesQuery();
 
-  const fallbackCustomers = [{ id: "fallback-customer", Company_name: "Demo Customer" }];
   const fallbackPaymentDeadlines = [
     { value: "7", label: "7 days" },
     { value: "14", label: "14 days" },
     { value: "30", label: "30 days" },
   ];
 
+  // Dynamic customer list from API (no static fallback so empty state prompts customer creation)
   const customerList =
     Array.isArray(Customer?.data) && Customer.data.length > 0
       ? Customer.data
       : Array.isArray(Customer) && Customer.length > 0
       ? Customer
-      : Customer?.error
-      ? fallbackCustomers
       : [];
 
   const paymentDeadlineList =
@@ -219,6 +217,7 @@ export default function Newinvoice() {
             <Row gutter={[24, 16]} justify="space-between">
               <Col xs={24} sm={12} md={10} lg={8}>
                 <Row gutter={[0, 16]}>
+                  {/* Dynamic Customer Select (Shows Customers if available; else shows Create Customer button) */}
                   <Col span={20}>
                     <CustomerSelect
                       open={customerOpen}

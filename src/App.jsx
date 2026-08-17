@@ -15,16 +15,26 @@ function App() {
       const saved = localStorage.getItem('direct_user_session');
       return saved ? JSON.parse(saved) : null;
     } catch (e) {
+      console.error('Failed to parse user session:', e);
       return null;
     }
   });
 
   const handleAuthenticate = (session) => {
+    try {
+      localStorage.setItem('direct_user_session', JSON.stringify(session));
+    } catch (e) {
+      console.error('Failed to save user session:', e);
+    }
     setUserSession(session);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('direct_user_session');
+    try {
+      localStorage.removeItem('direct_user_session');
+    } catch (e) {
+      console.error('Failed to clear user session:', e);
+    }
     setUserSession(null);
   };
 
@@ -60,7 +70,7 @@ function App() {
           <Route path="products" element={<ProductsPage />} />
           <Route path="offers" element={<OffersPage />} />
           <Route path="contact" element={<ContactPage />} />
-          <Route path="Customer" element={<CustomerPage />} />
+          <Route path="customer" element={<CustomerPage />} />
         </Route>
 
         {/* Fallback Route */}
