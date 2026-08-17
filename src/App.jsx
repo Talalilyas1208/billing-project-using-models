@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardLayout from './components/layout/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 import InvoicesPage from './pages/InvoicesPage';
+import Newinvoice from './pages/Newinvoice';
 import ProductsPage from './pages/ProductsPage';
 import OffersPage from './pages/OffersPage';
 import ContactPage from './pages/ContactPage';
@@ -55,6 +56,7 @@ function App() {
         >
           <Route index element={<Navigate to="/dashboard/invoices" replace />} />
           <Route path="invoices" element={<InvoicesPage />} />
+          <Route path="invoices/new" element={<Newinvoice />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="offers" element={<OffersPage />} />
           <Route path="contact" element={<ContactPage />} />

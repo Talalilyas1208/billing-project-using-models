@@ -14,33 +14,60 @@ import {
 import { useGetCustomersQuery } from '../../redux/api/blackListApi';
 
 const BillyInvoiceModal = ({ isOpen, onClose }) => {
-  // Consumes exact queries requested by user
-  const { data: currencies = [] } = useGetCurrenciesQuery();
-  const { data: deadlines = [] } = useGetPaymentDeadlinesQuery();
-  const { data: vatOptions = [] } = useGetVatQuery();
-  const { data: priceOptions = [] } = useGetPriceModeOptionsQuery();
-  const { data: designOptions = [] } = useGetDesignOptionsQuery();
-  const { data: actionButtons = [] } = useGetapprovebuttonQuery();
+  // RTK Query endpoints
+  const { data: currenciesRes } = useGetCurrenciesQuery();
+  const { data: deadlinesRes } = useGetPaymentDeadlinesQuery();
+  const { data: vatRes } = useGetVatQuery();
+  const { data: priceOptionsRes } = useGetPriceModeOptionsQuery();
+  const { data: actionButtonsRes } = useGetapprovebuttonQuery();
   const { data: fieldLabels = {} } = useGetFieldTypeOptionsQuery();
   const { data: customersResponse } = useGetCustomersQuery();
 
-  const customersList = Array.isArray(customersResponse)
+  // Normalize data arrays whether nested in .data or top-level array
+  const customersList = Array.isArray(customersResponse?.data)
+    ? customersResponse.data
+    : Array.isArray(customersResponse)
     ? customersResponse
-    : customersResponse?.data || [];
+    : [];
 
-  const currencyList = Array.isArray(currencies) ? currencies : [];
-  const deadlineList = Array.isArray(deadlines) ? deadlines : [];
-  const vatList = Array.isArray(vatOptions) ? vatOptions : [];
-  const priceOptsList = Array.isArray(priceOptions) ? priceOptions : [];
-  const approveButtonsList = Array.isArray(actionButtons) ? actionButtons : [];
+  const currencyList = Array.isArray(currenciesRes?.data)
+    ? currenciesRes.data
+    : Array.isArray(currenciesRes)
+    ? currenciesRes
+    : [];
+
+  const deadlineList = Array.isArray(deadlinesRes?.data)
+    ? deadlinesRes.data
+    : Array.isArray(deadlinesRes)
+    ? deadlinesRes
+    : [];
+
+  const vatList = Array.isArray(vatRes?.data)
+    ? vatRes.data
+    : Array.isArray(vatRes)
+    ? vatRes
+    : [];
+
+  const priceOptsList = Array.isArray(priceOptionsRes?.data)
+    ? priceOptionsRes.data
+    : Array.isArray(priceOptionsRes)
+    ? priceOptionsRes
+    : [];
+
+  const approveButtonsList = Array.isArray(actionButtonsRes?.data)
+    ? actionButtonsRes.data
+    : Array.isArray(actionButtonsRes)
+    ? actionButtonsRes
+    : [];
 
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
-  const [paymentDeadline, setPaymentDeadline] = useState('pd-14');
-  const [priceOption, setPriceOption] = useState('po-1');
-  const [issueDate, setIssueDate] = useState('2026-08-13');
-  const [dueDate, setDueDate] = useState('2026-08-27');
+  const [paymentDeadline, setPaymentDeadline] = useState('7');
+  const [selectedVat, setSelectedVat] = useState('normal_goods');
+  const [priceOption, setPriceOption] = useState('excl');
+  const [issueDate, setIssueDate] = useState('2026-08-17');
+  const [dueDate, setDueDate] = useState('2026-08-31');
 
   const [items, setItems] = useState([
     { id: 1, description: 'Software Consulting & Architecture', quantity: 1, unitPrice: 1800, taxRate: 25 },
@@ -52,8 +79,8 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
   const handleCustomerSelect = (e) => {
     const name = e.target.value;
     setCustomerName(name);
-    const found = customersList.find((c) => c.name === name);
-    if (found) setCustomerEmail(found.email);
+    const found = customersList.find((c) => (c.name || c.Company_name) === name);
+    if (found) setCustomerEmail(found.email || '');
   };
 
   const handleAddItem = () => {
@@ -114,7 +141,7 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-900">Billy.dk Dynamic Invoice Builder</h2>
-              <p className="text-xs text-slate-500">Connected to api & blackListApi RTK Query Slices</p>
+              <p className="text-xs text-slate-500">Dynamic VAT, Payment Deadlines, & Currencies</p>
             </div>
           </div>
           <button
@@ -129,6 +156,7 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
         <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
           {/* Dynamic Configuration Row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+            {/* Currency Select */}
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                 {fieldLabels.currency || 'Currency'}
@@ -136,16 +164,17 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
               <select
                 value={selectedCurrency}
                 onChange={(e) => setSelectedCurrency(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-500"
               >
                 {currencyList.map((c) => (
                   <option key={c.code} value={c.code}>
-                    {c.symbol} - {c.name} ({c.code})
+                    {c.symbol ? `${c.symbol} ` : ''}{c.name || c.code} ({c.code})
                   </option>
                 ))}
               </select>
             </div>
 
+            {/* Payment Deadline Select */}
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                 {fieldLabels.paymentTerms || 'Payment Deadline'}
@@ -153,30 +182,39 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
               <select
                 value={paymentDeadline}
                 onChange={(e) => setPaymentDeadline(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-500"
               >
-                {deadlineList.map((pd) => (
-                  <option key={pd.id} value={pd.id}>
-                    {pd.label}
-                  </option>
-                ))}
+                {deadlineList.map((pd, idx) => {
+                  const val = String(pd.days !== undefined ? pd.days : pd.value || pd.id || idx);
+                  const label = pd.label || `${pd.days || 0} days after`;
+                  return (
+                    <option key={val} value={val}>
+                      {label}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
+            {/* VAT Select */}
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
                 VAT Option
               </label>
               <select
-                value={priceOption}
-                onChange={(e) => setPriceOption(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500"
+                value={selectedVat}
+                onChange={(e) => setSelectedVat(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-500"
               >
-                {priceOptsList.map((po) => (
-                  <option key={po.id} value={po.id}>
-                    {po.label}
-                  </option>
-                ))}
+                {vatList.map((v, idx) => {
+                  const val = String(v.key || v.code || v.id || idx);
+                  const label = v.code || v.label || v.description || 'VAT Option';
+                  return (
+                    <option key={val} value={val}>
+                      {label} {v.description ? `(${v.description})` : ''}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           </div>
@@ -194,8 +232,8 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
               >
                 <option value="">-- Choose Customer --</option>
                 {customersList.map((c) => (
-                  <option key={c.id || c.name} value={c.name}>
-                    {c.name} ({c.email})
+                  <option key={c.id || c.name || c.Company_name} value={c.name || c.Company_name}>
+                    {c.Company_name || c.name} ({c.email || 'N/A'})
                   </option>
                 ))}
               </select>
@@ -350,7 +388,7 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Dynamic Action Buttons from useGetapprovebuttonQuery */}
+          {/* Dynamic Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
             <Button variant="outline" onClick={onClose}>
               Cancel
@@ -358,8 +396,8 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
             {approveButtonsList.length > 0 ? (
               approveButtonsList.map((btn) => (
                 <Button
-                  key={btn.id}
-                  variant={btn.id === 'btn-3' ? 'primary' : 'outline'}
+                  key={btn.id || btn.label}
+                  variant={btn.id === 3 ? 'primary' : 'outline'}
                   onClick={() => handleFormSubmit(btn.label)}
                 >
                   {btn.label}
