@@ -2,63 +2,77 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import crypto from 'crypto';
 
-// Complete dataset definitions matching the user's mock server schema
+// Dynamic mock datasets matching http-mockserver specifications
 const Result = [
   {
-    productname: "12",
-    description: "12",
+    productname: "Software Architecture Consulting",
+    description: "Monthly enterprise software architecture consulting",
     revenueCategory: "monthyly-recurring",
     vat: "Normal sale of goods",
-    price: 12,
+    price: 1800,
     currency: "USD",
-    productNumber: "12",
-    supplier: "12",
+    productNumber: "PRD-101",
+    supplier: "Billy.dk",
     id: "672be90a-8e2d-4bc8-81d7-44d2eb2da7d4",
   },
   {
-    productname: "12",
-    description: "12",
+    productname: "Cloud Hosting & DevOps Maintenance",
+    description: "Infrastructure support and SLA monitoring",
     revenueCategory: "monthyly-recurring",
-    vat: "Normal sale of goods",
-    price: 12,
+    vat: "Normal sale of services",
+    price: 950,
     currency: "USD",
-    productNumber: "12",
-    supplier: "12",
+    productNumber: "PRD-102",
+    supplier: "Billy.dk",
     id: "672be90a-8e2d-4bc8-81d7-44d2eb2da7d6",
   },
+];
+
+const sidebar = [
+  { key: "invoices", label: "Invoices", path: "/dashboard/invoices" },
+  { key: "products", label: "Products", path: "/dashboard/products" },
+  { key: "offers", label: "Offers", path: "/dashboard/offers" },
+  { key: "customers", label: "Customers", path: "/dashboard/Customer" },
+];
+
+const invoice = [
   {
-    productname: "12",
-    description: "12",
-    revenueCategory: "monthyly-recurring",
-    vat: "Normal sale of goods",
-    price: 12,
+    id: "INV-2026-001",
+    invoiceNumber: "1001",
+    client: "Acme Corporation",
+    amount: 2250.00,
+    status: "Approved",
+    date: "2026-08-10",
+    dueDate: "2026-08-24",
     currency: "USD",
-    productNumber: "12",
-    supplier: "12",
-    id: "672be90a-8e2d-4bc8-81d7-44d2eb2da7d3",
   },
+];
+
+const currency = [
+  { code: "PKR", name: "Pakistani Rupee", symbol: "Rs" },
+  { code: "USD", name: "US Dollar", symbol: "$" },
+  { code: "DKK", name: "Danish Krone", symbol: "kr" },
+  { code: "EUR", name: "Euro", symbol: "€" },
+  { code: "GBP", name: "British Pound", symbol: "£" },
+];
+
+const revnue = [
+  { key: "monthly", label: "Monthly Recurring Revenue", code: "MRR" },
+  { key: "one_time", label: "One-Time Sale", code: "OTS" },
+  { key: "services", label: "Professional Services", code: "PS" },
 ];
 
 const mockdata = [
   { id: 1, date: "10/24/2022" },
   { id: 2, date: "5/30/2022" },
   { id: 3, date: "10/24/2022" },
-  { id: 4, date: "10/24/2022" },
-  { id: 5, date: "10/24/2022" },
-  { id: 6, date: "10/24/2022" },
-  { id: 7, date: "5/25/2023" },
 ];
 
-const customer = [
-  { id: "cust-1", name: "Acme Corporation", email: "billing@acme.com", country: "United States", status: "Active" },
-  { id: "cust-2", name: "Nordic Tech Solutions AB", email: "accounts@nordictech.se", country: "Sweden", status: "Active" },
-  { id: "cust-3", name: "Copenhagen Design House", email: "finance@cphdesign.dk", country: "Denmark", status: "Active" },
-];
+// Empty initial customer array so UI starts completely dynamic
+const customer = [];
 
 const newdata = [
   { transaction_id: 1, transaction_date: "11/23/2022", transaction_amount: 7877.88 },
-  { transaction_id: 2, transaction_date: "3/4/2022", transaction_amount: 7868.78 },
-  { transaction_id: 3, transaction_date: "1/2/2022", transaction_amount: 1070.15 },
 ];
 
 const labelforfield = [
@@ -71,84 +85,21 @@ const labelforfield = [
       { value: "net15", label: "Net 15" },
       { value: "net30", label: "Net 30" },
       { value: "net60", label: "Net 60" },
-      { value: "net90", label: "Net 90" },
       { value: "dueOnReceipt", label: "Due on receipt" },
     ],
   },
   { key: 3, label: "Currency", type: "currency", options: [] },
-  {
-    key: 4,
-    label: "Language",
-    type: "select",
-    options: [
-      { value: "en", label: "English" },
-      { value: "da", label: "Danish" },
-      { value: "de", label: "German" },
-      { value: "fr", label: "French" },
-    ],
-  },
-  {
-    key: 5,
-    label: "Email delivery",
-    type: "select",
-    options: [
-      { value: "yes", label: "Yes" },
-      { value: "no", label: "No" },
-    ],
-  },
 ];
 
 const Language = [
-  { country_name: "Greece" },
-  { country_name: "Canada" },
-  { country_name: "Egypt" },
-  { country_name: "Denmark" },
-  { country_name: "United States" },
-  { country_name: "Pakistan" },
+  { code: "en", name: "English" },
+  { code: "da", name: "Danish" },
 ];
 
 const approvebutton = [
-  { id: 1, label: "As an e invoice" },
-  { id: 2, label: "By email " },
-  { id: 3, label: "Approve" },
-];
-
-const sidebar = [
-  {
-    id: 1,
-    label: "Invoicing",
-    path: "/dashboard",
-    children: [
-      { name: "Invoice", link: "/dashboard/invoices" },
-      { name: "Products", link: "/dashboard/products" },
-      { name: "Offers", link: "/dashboard/offers" },
-      { name: "contact", link: "/dashboard/contact" },
-      { name: "Customer", link: "/dashboard/Customer" },
-    ],
-  },
-];
-
-const invoice = [
-  {
-    id: "1",
-    company_name: "talalilyas",
-    first_name: "talalilyas",
-  },
-];
-
-const currency = [
-  { id: "1", code: "PKR", name: "Pakistani Rupee", symbol: "₨", country: "Pakistan" },
-  { id: "2", code: "USD", name: "United States Dollar", symbol: "$", country: "United States" },
-  { id: "3", code: "DKK", name: "Danish Krone", symbol: "kr", country: "Denmark" },
-  { id: "4", code: "EUR", name: "Euro", symbol: "€", country: "European Union" },
-  { id: "5", code: "GBP", symbol: "British Pound Sterling", symbol: "£", country: "United Kingdom" },
-];
-
-const revnue = [
-  { id: 1, key: "monthyly-recurring", code: "Monthly Recurring" },
-  { id: 2, key: "one_time", code: "One-Time Fee" },
-  { id: 3, key: "service", code: "Professional Services", title: "manager" },
-  { id: 4, key: "subscription", code: "Annual Subscription" },
+  { id: 1, label: "Save as Draft", action: "draft" },
+  { id: 2, label: "Send for Review", action: "review" },
+  { id: 3, label: "Approve & Save", action: "approve" },
 ];
 
 const vat = [
@@ -172,7 +123,6 @@ const PRICEOPTIONS = [
 const DESIGNOPTIONS = [
   { label: "Standardskabelon", value: "standard" },
   { label: "Moderne skabelon", value: "modern" },
-  { label: "Klassisk skabelon", value: "classic" },
 ];
 
 const versions = { paymentdeadline: 1 };
@@ -218,25 +168,20 @@ const dynamicMockServerPlugin = () => ({
         return res.end();
       }
 
-      const rawPath = req.url.split('?')[0].replace(/^\/api\//, '');
-      const parts = rawPath.split('/');
+      const urlObj = new URL(req.url, 'http://localhost');
+      const pathname = urlObj.pathname.replace(/^\/api\//, '');
+      const parts = pathname.split('/');
       const from = parts[0];
-      const id = parts[1];
+      const idParam = parts[1];
 
-      // Parse query params
-      const searchMatch = req.url.match(/search=([^&]*)/);
-      const pageMatch = req.url.match(/page=([^&]*)/);
-      const limitMatch = req.url.match(/limit=([^&]*)/);
-
-      const searchText = searchMatch ? decodeURIComponent(searchMatch[1]).toLowerCase() : '';
-      const page = pageMatch ? parseInt(pageMatch[1], 10) || 1 : 1;
-      const limit = limitMatch ? parseInt(limitMatch[1], 10) || 16 : 16;
+      const searchText = urlObj.searchParams.get('search')?.toLowerCase() || '';
+      const page = parseInt(urlObj.searchParams.get('page') || '1', 10);
+      const limit = parseInt(urlObj.searchParams.get('limit') || '10', 10);
 
       const targetData = globalData[from];
-
       if (!targetData) {
         res.statusCode = 404;
-        return res.end(JSON.stringify({ message: "Not Found" }));
+        return res.end(JSON.stringify({ error: `Route /api/${from} Not Found` }));
       }
 
       // GET Handler
@@ -277,6 +222,15 @@ const dynamicMockServerPlugin = () => ({
           const newData = body ? JSON.parse(body) : {};
           newData.id = crypto.randomUUID();
           newData.createdDate = new Date().toISOString();
+
+          // Normalize customer fields
+          if (!newData.Company_name && newData.name) {
+            newData.Company_name = newData.name;
+          }
+          if (!newData.name && newData.Company_name) {
+            newData.name = newData.Company_name;
+          }
+
           if (Array.isArray(globalData[from])) {
             globalData[from].push(newData);
           }
@@ -291,17 +245,20 @@ const dynamicMockServerPlugin = () => ({
         let body = '';
         req.on('data', (chunk) => (body += chunk));
         req.on('end', () => {
-          const updatedData = body ? JSON.parse(body) : {};
+          const updatedFields = body ? JSON.parse(body) : {};
           if (Array.isArray(globalData[from])) {
-            const index = globalData[from].findIndex((item) => String(item.id) === String(id));
+            const index = globalData[from].findIndex((item) => String(item.id) === String(idParam));
             if (index !== -1) {
-              globalData[from][index] = { ...globalData[from][index], ...updatedData };
+              globalData[from][index] = { ...globalData[from][index], ...updatedFields };
+              if (!globalData[from][index].Company_name && globalData[from][index].name) {
+                globalData[from][index].Company_name = globalData[from][index].name;
+              }
               res.statusCode = 200;
               return res.end(JSON.stringify({ message: `${from} Updated Successfully`, data: globalData[from][index] }));
             }
           }
           res.statusCode = 404;
-          return res.end(JSON.stringify({ message: "Item Not Found" }));
+          return res.end(JSON.stringify({ error: `Item ${idParam} not found in ${from}` }));
         });
         return;
       }
@@ -309,20 +266,23 @@ const dynamicMockServerPlugin = () => ({
       // DELETE Handler
       if (req.method === 'DELETE') {
         if (Array.isArray(globalData[from])) {
-          const index = globalData[from].findIndex((item) => String(item.id) === String(id));
+          const index = globalData[from].findIndex((item) => String(item.id) === String(idParam));
           if (index !== -1) {
-            const [deletedItem] = globalData[from].splice(index, 1);
+            const deleted = globalData[from].splice(index, 1);
             res.statusCode = 200;
-            return res.end(JSON.stringify({ message: `${from} Deleted Successfully`, data: deletedItem }));
+            return res.end(JSON.stringify({ message: `${from} Deleted Successfully`, data: deleted[0] }));
           }
         }
         res.statusCode = 404;
-        return res.end(JSON.stringify({ message: "Item Not Found" }));
+        return res.end(JSON.stringify({ error: `Item ${idParam} not found in ${from}` }));
       }
+
+      next();
     });
   },
 });
 
+// https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), dynamicMockServerPlugin()],
 });

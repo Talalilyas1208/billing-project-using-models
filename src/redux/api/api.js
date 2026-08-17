@@ -22,6 +22,7 @@ export const api = createApi({
     "PriceModeOptions",
     "DesignOptions",
     "Approvebutton",
+    "Invoice",
   ],
   endpoints: (builder) => ({
     getSidebar: builder.query({
@@ -65,6 +66,33 @@ export const api = createApi({
       query: () => "/api/approvebutton",
       providesTags: [{ type: "Approvebutton", id: "List" }],
     }),
+    getInvoices: builder.query({
+      query: () => "/api/invoice",
+      providesTags: [{ type: "Invoice", id: "LIST" }],
+    }),
+    addInvoice: builder.mutation({
+      query: (invoiceData) => ({
+        url: "/api/invoice",
+        method: "POST",
+        body: invoiceData,
+      }),
+      invalidatesTags: [{ type: "Invoice", id: "LIST" }],
+    }),
+    updateInvoice: builder.mutation({
+      query: ({ id, ...patch }) => ({
+        url: `/api/invoice/${id}`,
+        method: "PUT",
+        body: patch,
+      }),
+      invalidatesTags: [{ type: "Invoice", id: "LIST" }],
+    }),
+    deleteInvoice: builder.mutation({
+      query: (id) => ({
+        url: `/api/invoice/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: "Invoice", id: "LIST" }],
+    }),
   }),
 });
 
@@ -79,4 +107,8 @@ export const {
   useGetPriceModeOptionsQuery,
   useGetDesignOptionsQuery,
   useGetapprovebuttonQuery,
+  useGetInvoicesQuery,
+  useAddInvoiceMutation,
+  useUpdateInvoiceMutation,
+  useDeleteInvoiceMutation,
 } = api;

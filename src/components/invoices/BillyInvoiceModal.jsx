@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Trash2, UploadCloud, FileText } from 'lucide-react';
+import { X, Plus, Trash2, UploadCloud, FileText, UserPlus, CheckCircle } from 'lucide-react';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import {
@@ -7,13 +7,15 @@ import {
   useGetPaymentDeadlinesQuery,
   useGetVatQuery,
   useGetPriceModeOptionsQuery,
-  useGetDesignOptionsQuery,
   useGetapprovebuttonQuery,
   useGetFieldTypeOptionsQuery,
+  useAddInvoiceMutation,
 } from '../../redux/api/api';
 import { useGetCustomersQuery } from '../../redux/api/blackListApi';
 
-const BillyInvoiceModal = ({ isOpen, onClose }) => {
+const BillyInvoiceModal = ({ isOpen, onClose, onOpenCreateCustomer }) => {
+  const [addInvoice, { isLoading: isSubmitting }] = useAddInvoiceMutation();
+
   // RTK Query endpoints
   const { data: currenciesRes } = useGetCurrenciesQuery();
   const { data: deadlinesRes } = useGetPaymentDeadlinesQuery();
@@ -65,14 +67,15 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [paymentDeadline, setPaymentDeadline] = useState('7');
   const [selectedVat, setSelectedVat] = useState('normal_goods');
-  const [priceOption, setPriceOption] = useState('excl');
-  const [issueDate, setIssueDate] = useState('2026-08-17');
-  const [dueDate, setDueDate] = useState('2026-08-31');
+  const [status, setStatus] = useState('Pending');
+  const [issueDate, setIssueDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dueDate, setDueDate] = useState(new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]);
 
   const [items, setItems] = useState([
     { id: 1, description: 'Software Consulting & Architecture', quantity: 1, unitPrice: 1800, taxRate: 25 },
   ]);
   const [attachment, setAttachment] = useState(null);
+  const [submitError, setSubmitError] = useState('');
 
   if (!isOpen) return null;
 
@@ -127,8 +130,41 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
   };
 
   const handleFormSubmit = async (actionLabel = 'Approve & Save') => {
-    onClose();
+    setSubmitError('');
+    if (!customerName) {
+      setSubmitError('Please select or enter a customer name.');
+      return;
+    }
+
+    const payload = {
+      invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
+      client: customerName,
+      customerEmail: customerEmail,
+      amount: grandTotal,
+      subtotal: subtotal,
+      vatAmount: taxTotal,
+      currency: selectedCurrency,
+      status: status || 'Pending',
+      date: issueDate,
+      dueDate: dueDate,
+      vatOption: selectedVat,
+      paymentDeadline: paymentDeadline,
+      items: items,
+      attachment: attachment,
+      actionTaken: actionLabel,
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      await addInvoice(payload).unwrap();
+      onClose();
+    } catch (err) {
+      console.error('Failed to post invoice:', err);
+      setSubmitError('Failed to save invoice. Please try again.');
+    }
   };
+
+  const hasCustomers = customersList.length > 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
@@ -140,8 +176,8 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900">Billy.dk Dynamic Invoice Builder</h2>
-              <p className="text-xs text-slate-500">Dynamic VAT, Payment Deadlines, & Currencies</p>
+              <h2 className="text-base font-bold text-slate-900">Create & Approve Invoice</h2>
+              <p className="text-xs text-slate-500">Saves complete invoice data to POST /api/invoice</p>
             </div>
           </div>
           <button
@@ -154,8 +190,14 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
 
         {/* Form Body */}
         <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+          {submitError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium">
+              {submitError}
+            </div>
+          )}
+
           {/* Dynamic Configuration Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
             {/* Currency Select */}
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
@@ -164,7 +206,7 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
               <select
                 value={selectedCurrency}
                 onChange={(e) => setSelectedCurrency(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-500 text-xs"
               >
                 {currencyList.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -182,7 +224,7 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
               <select
                 value={paymentDeadline}
                 onChange={(e) => setPaymentDeadline(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-500 text-xs"
               >
                 {deadlineList.map((pd, idx) => {
                   const val = String(pd.days !== undefined ? pd.days : pd.value || pd.id || idx);
@@ -204,7 +246,7 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
               <select
                 value={selectedVat}
                 onChange={(e) => setSelectedVat(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-500 text-xs"
               >
                 {vatList.map((v, idx) => {
                   const val = String(v.key || v.code || v.id || idx);
@@ -217,26 +259,70 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
                 })}
               </select>
             </div>
+
+            {/* Status Selection (Pending vs Paid) */}
+            <div>
+              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                Initial Status
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-500 font-semibold text-xs text-blue-700"
+              >
+                <option value="Pending">Pending</option>
+                <option value="Paid">Paid Receipt</option>
+                <option value="Approved">Approved</option>
+              </select>
+            </div>
           </div>
 
           {/* Customer & Dates Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
-                Select Customer
-              </label>
-              <select
-                value={customerName}
-                onChange={handleCustomerSelect}
-                className="w-full text-sm bg-white border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800"
-              >
-                <option value="">-- Choose Customer --</option>
-                {customersList.map((c) => (
-                  <option key={c.id || c.name || c.Company_name} value={c.name || c.Company_name}>
-                    {c.Company_name || c.name} ({c.email || 'N/A'})
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
+                  Select Customer
+                </label>
+                {hasCustomers && onOpenCreateCustomer && (
+                  <button
+                    type="button"
+                    onClick={onOpenCreateCustomer}
+                    className="text-[11px] font-bold text-blue-600 hover:text-blue-700 underline"
+                  >
+                    + Create New
+                  </button>
+                )}
+              </div>
+
+              {hasCustomers ? (
+                <select
+                  value={customerName}
+                  onChange={handleCustomerSelect}
+                  className="w-full text-sm bg-white border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800"
+                >
+                  <option value="">-- Choose Customer --</option>
+                  {customersList.map((c) => (
+                    <option key={c.id || c.name || c.Company_name} value={c.name || c.Company_name}>
+                      {c.Company_name || c.name} ({c.email || 'N/A'})
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="border border-dashed border-slate-300 rounded-lg p-3 bg-slate-50 text-center space-y-2">
+                  <p className="text-xs text-slate-500 font-medium">No customers found</p>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    icon={UserPlus}
+                    onClick={onOpenCreateCustomer}
+                    className="w-full"
+                  >
+                    Create Customer
+                  </Button>
+                </div>
+              )}
             </div>
 
             <Input
@@ -390,22 +476,30 @@ const BillyInvoiceModal = ({ isOpen, onClose }) => {
 
           {/* Dynamic Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
+
             {approveButtonsList.length > 0 ? (
               approveButtonsList.map((btn) => (
                 <Button
                   key={btn.id || btn.label}
                   variant={btn.id === 3 ? 'primary' : 'outline'}
+                  isLoading={isSubmitting}
+                  icon={btn.id === 3 ? CheckCircle : undefined}
                   onClick={() => handleFormSubmit(btn.label)}
                 >
                   {btn.label}
                 </Button>
               ))
             ) : (
-              <Button variant="primary" onClick={() => handleFormSubmit()}>
-                Approve & Save
+              <Button
+                variant="primary"
+                isLoading={isSubmitting}
+                icon={CheckCircle}
+                onClick={() => handleFormSubmit('Approve & Save')}
+              >
+                Approve & Save Invoice
               </Button>
             )}
           </div>
