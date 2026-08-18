@@ -65,12 +65,27 @@ function App() {
           }
         >
           <Route index element={<Navigate to="/dashboard/invoices" replace />} />
+          
+          {/* Invoice Routes */}
           <Route path="invoices" element={<InvoicesPage />} />
+          <Route path="Invoices" element={<InvoicesPage />} />
           <Route path="invoices/new" element={<Newinvoice />} />
+
+          {/* Product Routes */}
           <Route path="products" element={<ProductsPage />} />
+          <Route path="Products" element={<ProductsPage />} />
+
+          {/* Offer Routes */}
           <Route path="offers" element={<OffersPage />} />
+          <Route path="Offers" element={<OffersPage />} />
+
+          {/* Contact Routes */}
           <Route path="contact" element={<ContactPage />} />
+          <Route path="Contact" element={<ContactPage />} />
+
+          {/* Customer Routes */}
           <Route path="customer" element={<CustomerPage />} />
+          <Route path="Customer" element={<CustomerPage />} />
         </Route>
 
         {/* Fallback Route */}
