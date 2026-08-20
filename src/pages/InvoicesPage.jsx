@@ -1,14 +1,33 @@
 import React, { useState } from 'react';
-import { Plus, RefreshCw, FileText, CheckCircle2, Clock, Filter, Eye } from 'lucide-react';
-import Button from '../components/common/Button';
+import {
+  Table,
+  Button,
+  Space,
+  Typography,
+  Tag,
+  Segmented,
+  Modal,
+  Form,
+  Tooltip,
+} from 'antd';
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  FileTextOutlined,
+  CheckCircleOutlined,
+  EyeOutlined,
+} from '@ant-design/icons';
 import InvoiceStats from '../components/invoices/InvoiceStats';
 import BillyInvoiceModal from '../components/invoices/BillyInvoiceModal';
 import InvoiceDetailModal from '../components/invoices/InvoiceDetailModal';
+import NewCustomers from '../components/NewCustomers/NewCustomers';
 import Badge from '../components/common/Badge';
 import {
   useGetInvoicesQuery,
   useUpdateInvoiceMutation,
 } from '../redux/api/api';
+
+const { Title, Text } = Typography;
 
 const InvoicesPage = () => {
   const { data: invoicesResponse, refetch, isLoading } = useGetInvoicesQuery();
@@ -20,11 +39,12 @@ const InvoicesPage = () => {
     ? invoicesResponse
     : [];
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
-  const [statusFilter, setStatusFilter] = useState('All');
+  const [isModalOpen, setIsModalOpen]           = useState(false);
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice]   = useState(null);
+  const [statusFilter, setStatusFilter]         = useState('All');
+  const [customerForm] = Form.useForm();
 
-  // Filter invoices by status
   const filteredInvoices = invoicesList.filter((inv) => {
     if (statusFilter === 'All') return true;
     return (inv.status || '').toLowerCase() === statusFilter.toLowerCase();
@@ -39,153 +59,201 @@ const InvoicesPage = () => {
     }
   };
 
+  const columns = [
+    {
+      title: 'Invoice ID',
+      dataIndex: 'invoiceNumber',
+      key: 'invoiceNumber',
+      render: (val, record) => (
+        <Text strong style={{ color: '#2563eb' }}>
+          {val || record.id}
+        </Text>
+      ),
+    },
+    {
+      title: 'Client / Customer',
+      key: 'client',
+      render: (_, record) => (
+        <Text strong>{record.client || record.customerName || 'N/A'}</Text>
+      ),
+    },
+    {
+      title: 'Issue Date',
+      key: 'date',
+      render: (_, record) => (
+        <Text type="secondary">{record.date || record.issueDate || 'N/A'}</Text>
+      ),
+    },
+    {
+      title: 'Due Date',
+      dataIndex: 'dueDate',
+      key: 'dueDate',
+      render: (val) => <Text type="secondary">{val || 'N/A'}</Text>,
+    },
+    {
+      title: 'Amount',
+      key: 'amount',
+      render: (_, record) => {
+        const total = Number(record.amount || record.grandTotal || 0);
+        return (
+          <Text strong>
+            ${total.toFixed(2)} ({record.currency || 'USD'})
+          </Text>
+        );
+      },
+    },
+    {
+      title: 'Status',
+      key: 'status',
+      render: (_, record) => <Badge status={record.status || 'Pending'} />,
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      align: 'right',
+      render: (_, record) => {
+        const isPaid = (record.status || '').toLowerCase() === 'paid';
+        return (
+          <Space size="small">
+            <Tooltip title="View Invoice">
+              <Button
+                type="default"
+                size="small"
+                icon={<EyeOutlined />}
+                onClick={() => setSelectedInvoice(record)}
+              >
+                View
+              </Button>
+            </Tooltip>
+            {!isPaid && (
+              <Tooltip title="Mark as Paid">
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<CheckCircleOutlined />}
+                  onClick={() => handleMarkAsPaid(record)}
+                  style={{ background: '#059669', borderColor: '#059669' }}
+                >
+                  Mark Paid
+                </Button>
+              </Tooltip>
+            )}
+          </Space>
+        );
+      },
+    },
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+      {/* Page Header */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 16,
+          marginBottom: 24,
+        }}
+      >
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <FileText className="w-6 h-6 text-blue-600" />
+          <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <FileTextOutlined style={{ color: '#2563eb' }} />
             Billy.dk Dynamic Invoices Overview
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Connected to POST /api/invoice with live status tracking (Pending & Paid Receipts)
-          </p>
+          </Title>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            Connected to POST /api/invoice with live status tracking
+          </Text>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" icon={RefreshCw} onClick={() => refetch()}>
+        <Space>
+          <Button icon={<ReloadOutlined />} onClick={() => refetch()}>
             Sync API
           </Button>
-          <Button variant="primary" icon={Plus} onClick={() => setIsModalOpen(true)}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setIsModalOpen(true)}
+          >
             Create New Invoice
           </Button>
-        </div>
+        </Space>
       </div>
 
-      {/* KPI Stats Breakdown */}
+      {/* KPI Stats */}
       <InvoiceStats invoices={invoicesList} />
 
-      {/* Invoices Collection Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        {/* Table Header Controls & Status Filters */}
-        <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-            <span>Invoices Collection ({filteredInvoices.length})</span>
-          </h3>
-
-          {/* Status Filter Options (All, Pending, Paid, Approved) */}
-          <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 text-xs">
-            <Filter className="w-3.5 h-3.5 text-slate-400 ml-1.5 mr-0.5" />
-            {['All', 'Pending', 'Paid', 'Approved'].map((st) => (
-              <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
-                  statusFilter === st
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                {st}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <table className="w-full text-left text-xs text-slate-600">
-          <thead className="bg-slate-100/70 text-slate-500 font-semibold uppercase border-b border-slate-200">
-            <tr>
-              <th className="py-3 px-4">Invoice ID</th>
-              <th className="py-3 px-4">Client / Customer</th>
-              <th className="py-3 px-4">Issue Date</th>
-              <th className="py-3 px-4">Due Date</th>
-              <th className="py-3 px-4">Amount</th>
-              <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {isLoading ? (
-              <tr>
-                <td colSpan={7} className="py-8 text-center text-slate-400 animate-pulse">
-                  Loading invoices via /api/invoice...
-                </td>
-              </tr>
-            ) : filteredInvoices.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="py-12 text-center text-slate-500 space-y-3">
-                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
-                    <FileText className="w-6 h-6" />
-                  </div>
-                  <p className="text-sm font-semibold text-slate-700">No invoices found</p>
-                  <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                    No invoices matching filter "{statusFilter}". Click below to create your first invoice.
-                  </p>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    icon={Plus}
-                    onClick={() => setIsModalOpen(true)}
-                    className="mx-auto"
-                  >
-                    Create Invoice
-                  </Button>
-                </td>
-              </tr>
-            ) : (
-              filteredInvoices.map((inv) => {
-                const isPaid = (inv.status || '').toLowerCase() === 'paid';
-                const grandTotal = Number(inv.amount || inv.grandTotal || 0);
-
-                return (
-                  <tr key={inv.id || inv.invoiceNumber} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3 px-4 font-bold text-blue-600">
-                      {inv.invoiceNumber || inv.id}
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-slate-800">
-                      {inv.client || inv.customerName || 'N/A'}
-                    </td>
-                    <td className="py-3 px-4 text-slate-500">{inv.date || inv.issueDate || 'N/A'}</td>
-                    <td className="py-3 px-4 text-slate-500">{inv.dueDate || 'N/A'}</td>
-                    <td className="py-3 px-4 font-bold text-slate-900">
-                      ${grandTotal.toFixed(2)} ({inv.currency || 'USD'})
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge status={inv.status || 'Pending'} />
-                    </td>
-                    <td className="py-3 px-4 text-right space-x-2">
-                      <button
-                        onClick={() => setSelectedInvoice(inv)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>View</span>
-                      </button>
-
-                      {!isPaid && (
-                        <button
-                          onClick={() => handleMarkAsPaid(inv)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-md transition-colors"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Mark Paid</span>
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+      {/* Status Filter */}
+      <div style={{ marginBottom: 16 }}>
+        <Segmented
+          options={['All', 'Pending', 'Paid', 'Approved']}
+          value={statusFilter}
+          onChange={setStatusFilter}
+        />
       </div>
 
-      {/* Dynamic Billy.dk Invoice Creator Modal */}
-      <BillyInvoiceModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      {/* Table */}
+      <Table
+        dataSource={filteredInvoices}
+        columns={columns}
+        rowKey={(record) => record.id || record.invoiceNumber}
+        loading={isLoading}
+        size="middle"
+        style={{
+          background: '#fff',
+          borderRadius: 12,
+          border: '1px solid #e2e8f0',
+          overflow: 'hidden',
+        }}
+        pagination={{ pageSize: 10, showSizeChanger: true }}
+        locale={{
+          emptyText: (
+            <div style={{ padding: '40px 0', textAlign: 'center' }}>
+              <FileTextOutlined style={{ fontSize: 40, color: '#cbd5e1', marginBottom: 12 }} />
+              <div style={{ fontWeight: 600, color: '#475569' }}>No invoices found</div>
+              <div style={{ color: '#94a3b8', fontSize: 12, margin: '8px 0 16px' }}>
+                No invoices matching filter "{statusFilter}"
+              </div>
+              <Button
+                type="primary"
+                size="small"
+                icon={<PlusOutlined />}
+                onClick={() => setIsModalOpen(true)}
+              >
+                Create Invoice
+              </Button>
+            </div>
+          ),
+        }}
+      />
 
-      {/* Detail Preview Modal */}
-      <InvoiceDetailModal invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />
+      {/* Create Invoice Modal */}
+      <BillyInvoiceModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onOpenCreateCustomer={() => setIsCustomerModalOpen(true)}
+      />
+
+      {/* Create Customer Modal */}
+      <Modal
+        open={isCustomerModalOpen}
+        onCancel={() => setIsCustomerModalOpen(false)}
+        footer={null}
+        destroyOnHidden
+        title="Create New Customer"
+      >
+        <NewCustomers
+          form={customerForm}
+          onClose={() => setIsCustomerModalOpen(false)}
+        />
+      </Modal>
+
+      {/* Invoice Detail Modal */}
+      <InvoiceDetailModal
+        invoice={selectedInvoice}
+        onClose={() => setSelectedInvoice(null)}
+      />
     </div>
   );
 };

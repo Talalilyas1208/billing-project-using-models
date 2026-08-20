@@ -1,52 +1,89 @@
 import React from 'react';
-import { Bell, Search, LogOut } from 'lucide-react';
+import { Layout, Input, Avatar, Badge, Tooltip, Space, Typography } from 'antd';
+import {
+  BellOutlined,
+  LogoutOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
+
+const { Header: AntHeader } = Layout;
+const { Text } = Typography;
 
 const Header = ({ userSession, onLogout }) => {
+  const initials = userSession?.name
+    ? userSession.name.charAt(0).toUpperCase()
+    : 'U';
+
   return (
-    <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20 shadow-xs">
-      {/* Search Input */}
-      <div className="relative w-72">
-        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-        <input
-          type="text"
-          placeholder="Search invoices, datasets..."
-          className="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
-        />
-      </div>
+    <AntHeader
+      style={{
+        height: 64,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 24px',
+        background: '#ffffff',
+        borderBottom: '1px solid #e2e8f0',
+        position: 'sticky',
+        top: 0,
+        zIndex: 20,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+      }}
+    >
+      {/* Search */}
+      <Input
+        prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+        placeholder="Search invoices, datasets..."
+        style={{ width: 280, background: '#f8fafc', borderColor: '#e2e8f0' }}
+        size="middle"
+      />
 
-      {/* User Profile & Actions */}
-      <div className="flex items-center gap-4">
-        <button className="relative p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full ring-2 ring-white" />
-        </button>
+      {/* Right: Bell + Avatar + Logout */}
+      <Space size={16} align="center">
+        <Tooltip title="Notifications">
+          <Badge count={1} size="small" offset={[-2, 2]}>
+            <BellOutlined
+              style={{
+                fontSize: 16,
+                color: '#64748b',
+                cursor: 'pointer',
+              }}
+            />
+          </Badge>
+        </Tooltip>
 
-        <div className="h-6 w-px bg-slate-200" />
+        <div style={{ width: 1, height: 24, background: '#e2e8f0' }} />
 
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-slate-900 text-white font-semibold text-xs flex items-center justify-center">
-            {userSession?.name ? userSession.name.charAt(0).toUpperCase() : 'U'}
-          </div>
+        <Space size={10} align="center">
+          <Avatar
+            size={32}
+            style={{ background: '#0f172a', color: '#fff', fontWeight: 600, fontSize: 13 }}
+          >
+            {initials}
+          </Avatar>
 
-          <div className="text-left hidden sm:block">
-            <p className="text-xs font-semibold text-slate-800 leading-tight">
+          <div style={{ lineHeight: '1.2' }}>
+            <Text strong style={{ fontSize: 12, display: 'block', color: '#1e293b' }}>
               {userSession?.name || 'Direct Session'}
-            </p>
-            <p className="text-[10px] text-slate-400 leading-tight">{userSession?.email || 'user@billy.dk'}</p>
+            </Text>
+            <Text style={{ fontSize: 10, color: '#94a3b8' }}>
+              {userSession?.email || 'user@billy.dk'}
+            </Text>
           </div>
 
           {onLogout && (
-            <button
-              onClick={onLogout}
-              title="Log out session"
-              className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-1"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            <Tooltip title="Log out">
+              <LogoutOutlined
+                onClick={onLogout}
+                style={{ fontSize: 15, color: '#94a3b8', cursor: 'pointer' }}
+                onMouseEnter={(e) => (e.target.style.color = '#ef4444')}
+                onMouseLeave={(e) => (e.target.style.color = '#94a3b8')}
+              />
+            </Tooltip>
           )}
-        </div>
-      </div>
-    </header>
+        </Space>
+      </Space>
+    </AntHeader>
   );
 };
 

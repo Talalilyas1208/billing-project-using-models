@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, LogIn, Chrome, Facebook } from 'lucide-react';
-import Input from '../components/common/Input';
-import Button from '../components/common/Button';
+import { Card, Form, Input, Button, Alert, Divider, Typography, Row, Col } from 'antd';
+import {
+  MailOutlined,
+  LockOutlined,
+  LoginOutlined,
+  GoogleOutlined,
+} from '@ant-design/icons';
 import { validateLoginForm } from '../utils/validation';
 import {
   loginWithEmail,
@@ -17,31 +21,32 @@ import {
   clearAuthError,
 } from '../redux/slices/authSlice';
 
+const { Title, Text } = Typography;
+
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isLoading, error } = useSelector((state) => state.auth);
+  const [form] = Form.useForm();
 
-  const [email, setEmail] = useState('demo@billy.dk');
-  const [password, setPassword] = useState('123456');
-  const [formErrors, setFormErrors] = useState({});
-
-  const handleEmailLogin = async (e) => {
-    e.preventDefault();
+  const handleEmailLogin = async (values) => {
     dispatch(clearAuthError());
 
     // 1. Client-Side Validation Layer (Stops Firebase request if invalid)
-    const { isValid, errors } = validateLoginForm({ email, password });
+    const { isValid, errors } = validateLoginForm({ email: values.email, password: values.password });
     if (!isValid) {
-      setFormErrors(errors);
+      const fieldErrors = Object.entries(errors).map(([name, err]) => ({
+        name,
+        errors: [err],
+      }));
+      form.setFields(fieldErrors);
       return;
     }
-    setFormErrors({});
 
     // 2. Dispatch Auth & Firebase Sign In
     dispatch(setAuthLoading(true));
     try {
-      const user = await loginWithEmail(email, password);
+      const user = await loginWithEmail(values.email, values.password);
       dispatch(loginSuccess(user));
       navigate('/dashboard/invoices');
     } catch (err) {
@@ -74,92 +79,140 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md p-8 animate-modal">
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#0f172a',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+      }}
+    >
+      <Card
+        style={{
+          width: '100%',
+          maxWidth: 440,
+          borderRadius: 16,
+          boxShadow: '0 25px 50px rgba(0,0,0,0.4)',
+          border: '1px solid #e2e8f0',
+        }}
+        styles={{ body: { padding: 32 } }}
+      >
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 text-white font-bold text-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              background: '#2563eb',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 22,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 12px',
+              boxShadow: '0 4px 12px rgba(37,99,235,0.4)',
+            }}
+          >
             B
           </div>
-          <h1 className="text-xl font-extrabold text-slate-900">Sign in to Billy.dk</h1>
-          <p className="text-xs text-slate-500 mt-1">Manage invoices & financial reports</p>
+          <Title level={4} style={{ margin: 0 }}>
+            Sign in to Billy.dk
+          </Title>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            Manage invoices &amp; financial reports
+          </Text>
         </div>
 
         {/* Global Firebase Auth Error Message */}
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium">
-            {error}
-          </div>
+          <Alert message={error} type="error" showIcon style={{ marginBottom: 16, borderRadius: 8 }} />
         )}
 
         {/* Form */}
-        <form onSubmit={handleEmailLogin} className="space-y-4">
-          <Input
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleEmailLogin}
+          initialValues={{ email: 'demo@billy.dk', password: 'password123' }}
+          requiredMark={false}
+        >
+          <Form.Item
             label="Email Address"
-            type="email"
-            placeholder="user@billy.dk"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={formErrors.email}
-            icon={Mail}
-            required
-          />
+            name="email"
+            rules={[{ required: true, message: 'Please enter your email' }]}
+          >
+            <Input
+              size="large"
+              placeholder="user@billy.dk"
+              prefix={<MailOutlined style={{ color: '#94a3b8' }} />}
+            />
+          </Form.Item>
 
-          <Input
+          <Form.Item
             label="Password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            error={formErrors.password}
-            icon={Lock}
-            required
-          />
+            name="password"
+            rules={[{ required: true, message: 'Please enter your password' }]}
+          >
+            <Input.Password
+              size="large"
+              placeholder="••••••••"
+              prefix={<LockOutlined style={{ color: '#94a3b8' }} />}
+            />
+          </Form.Item>
 
-          <Button type="submit" variant="primary" className="w-full" isLoading={isLoading} icon={LogIn}>
-            Sign In
-          </Button>
-        </form>
+          <Form.Item style={{ marginBottom: 16 }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              block
+              loading={isLoading}
+              icon={<LoginOutlined />}
+            >
+              Sign In
+            </Button>
+          </Form.Item>
+        </Form>
 
         {/* Social Auth Providers */}
-        <div className="mt-6">
-          <div className="relative flex items-center justify-center mb-4">
-            <div className="border-t border-slate-200 w-full" />
-            <span className="bg-white px-3 text-[10px] text-slate-400 font-bold uppercase tracking-wider absolute">
-              Or continue with
-            </span>
-          </div>
+        <Divider style={{ fontSize: 11, color: '#94a3b8' }}>Or continue with</Divider>
 
-          <div className="grid grid-cols-2 gap-3">
+        <Row gutter={12}>
+          <Col span={12}>
             <Button
-              variant="outline"
-              size="sm"
-              icon={Chrome}
+              block
+              size="middle"
+              icon={<GoogleOutlined />}
               onClick={handleGoogleLogin}
               disabled={isLoading}
             >
               Google
             </Button>
+          </Col>
+          <Col span={12}>
             <Button
-              variant="outline"
-              size="sm"
-              icon={Facebook}
+              block
+              size="middle"
               onClick={handleFacebookLogin}
               disabled={isLoading}
             >
               Facebook
             </Button>
-          </div>
-        </div>
+          </Col>
+        </Row>
 
         {/* Footer link to Signup */}
-        <div className="mt-6 text-center text-xs text-slate-500">
-          Don't have an account?{' '}
-          <Link to="/signup" className="font-bold text-blue-600 hover:text-blue-700">
+        <div style={{ marginTop: 24, textAlign: 'center', fontSize: 12 }}>
+          <Text type="secondary">Don't have an account? </Text>
+          <Link to="/signup" style={{ fontWeight: 700, color: '#2563eb' }}>
             Sign up now
           </Link>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

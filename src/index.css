@@ -1,27 +1,34 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* =========================================================
+   Billy.dk — Global Base Styles (No Tailwind)
+   All component-level styling handled by Ant Design
+   ========================================================= */
 
-@layer base {
-  :root {
-    --billy-blue: #2563eb;
-    --billy-blue-hover: #1d4ed8;
-    --billy-navy: #0f172a;
-    --billy-slate: #1e293b;
-    --billy-bg: #f8fafc;
-    --billy-card: #ffffff;
-    --billy-border: #e2e8f0;
-  }
-
-  body {
-    background-color: var(--billy-bg);
-    color: var(--billy-navy);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
+:root {
+  --billy-blue: #2563eb;
+  --billy-blue-hover: #1d4ed8;
+  --billy-navy: #0f172a;
+  --billy-slate: #1e293b;
+  --billy-bg: #f8fafc;
+  --billy-card: #ffffff;
+  --billy-border: #e2e8f0;
 }
 
-/* Custom scrollbars for modals & tables */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--billy-bg);
+  color: var(--billy-navy);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -54,4 +61,28 @@
 
 .animate-modal {
   animation: modalSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Ant Design overrides */
+.ant-layout {
+  background: var(--billy-bg) !important;
+}
+
+.ant-layout-sider {
+  background: #0f172a !important;
+}
+
+.ant-menu.ant-menu-dark {
+  background: #0f172a !important;
+}
+
+.ant-menu-dark .ant-menu-item-selected {
+  background-color: #2563eb !important;
+}
+
+.ant-layout-header {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0;
+  line-height: normal;
+  padding: 0 24px;
 }
