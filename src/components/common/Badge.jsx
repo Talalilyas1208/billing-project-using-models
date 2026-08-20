@@ -11,7 +11,7 @@ const statusConfig = {
   Active:   { color: 'success',  dot: '#10b981' },
 };
 
-const Badge = ({ status }) => {
+const Badge = React.memo(({ status }) => {
   const config = statusConfig[status] || statusConfig.Draft;
 
   return (
@@ -33,6 +33,8 @@ const Badge = ({ status }) => {
       {status}
     </Tag>
   );
-};
+});
+
+Badge.displayName = 'Badge';
 
 export default Badge;

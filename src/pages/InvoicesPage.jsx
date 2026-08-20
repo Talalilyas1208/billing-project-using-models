@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   Table,
   Button,
@@ -45,106 +45,116 @@ const InvoicesPage = () => {
   const [statusFilter, setStatusFilter]         = useState('All');
   const [customerForm] = Form.useForm();
 
-  const handleCreateInvoice = () => navigate('/dashboard/invoices/new');
+  const handleCreateInvoice = useCallback(() => navigate('/dashboard/invoices/new'), [navigate]);
 
-  const filteredInvoices = invoicesList.filter((inv) => {
-    if (statusFilter === 'All') return true;
-    return (inv.status || '').toLowerCase() === statusFilter.toLowerCase();
-  });
+  const filteredInvoices = useMemo(
+    () =>
+      invoicesList.filter((inv) => {
+        if (statusFilter === 'All') return true;
+        return (inv.status || '').toLowerCase() === statusFilter.toLowerCase();
+      }),
+    [invoicesList, statusFilter]
+  );
 
-  const handleMarkAsPaid = async (inv) => {
-    try {
-      await updateInvoice({ id: inv.id, status: 'Paid' }).unwrap();
-      if (refetch) refetch();
-    } catch (err) {
-      console.error('Failed to update invoice status:', err);
-    }
-  };
+  const handleMarkAsPaid = useCallback(
+    async (inv) => {
+      try {
+        await updateInvoice({ id: inv.id, status: 'Paid' }).unwrap();
+        if (refetch) refetch();
+      } catch (err) {
+        console.error('Failed to update invoice status:', err);
+      }
+    },
+    [updateInvoice, refetch]
+  );
 
-  const columns = [
-    {
-      title: 'Invoice ID',
-      dataIndex: 'invoiceNumber',
-      key: 'invoiceNumber',
-      render: (val, record) => (
-        <Text strong style={{ color: '#2563eb' }}>
-          {val || record.id}
-        </Text>
-      ),
-    },
-    {
-      title: 'Client / Customer',
-      key: 'client',
-      render: (_, record) => (
-        <Text strong>{record.client || record.customerName || 'N/A'}</Text>
-      ),
-    },
-    {
-      title: 'Issue Date',
-      key: 'date',
-      render: (_, record) => (
-        <Text type="secondary">{record.date || record.issueDate || 'N/A'}</Text>
-      ),
-    },
-    {
-      title: 'Due Date',
-      dataIndex: 'dueDate',
-      key: 'dueDate',
-      render: (val) => <Text type="secondary">{val || 'N/A'}</Text>,
-    },
-    {
-      title: 'Amount',
-      key: 'amount',
-      render: (_, record) => {
-        const total = Number(record.amount || record.grandTotal || 0);
-        return (
-          <Text strong>
-            ${total.toFixed(2)} ({record.currency || 'USD'})
+  const columns = useMemo(
+    () => [
+      {
+        title: 'Invoice ID',
+        dataIndex: 'invoiceNumber',
+        key: 'invoiceNumber',
+        render: (val, record) => (
+          <Text strong style={{ color: '#2563eb' }}>
+            {val || record.id}
           </Text>
-        );
+        ),
       },
-    },
-    {
-      title: 'Status',
-      key: 'status',
-      render: (_, record) => <Badge status={record.status || 'Pending'} />,
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      align: 'right',
-      render: (_, record) => {
-        const isPaid = (record.status || '').toLowerCase() === 'paid';
-        return (
-          <Space size="small">
-            <Tooltip title="View Invoice">
-              <Button
-                type="default"
-                size="small"
-                icon={<EyeOutlined />}
-                onClick={() => setSelectedInvoice(record)}
-              >
-                View
-              </Button>
-            </Tooltip>
-            {!isPaid && (
-              <Tooltip title="Mark as Paid">
+      {
+        title: 'Client / Customer',
+        key: 'client',
+        render: (_, record) => (
+          <Text strong>{record.client || record.customerName || 'N/A'}</Text>
+        ),
+      },
+      {
+        title: 'Issue Date',
+        key: 'date',
+        render: (_, record) => (
+          <Text type="secondary">{record.date || record.issueDate || 'N/A'}</Text>
+        ),
+      },
+      {
+        title: 'Due Date',
+        dataIndex: 'dueDate',
+        key: 'dueDate',
+        render: (val) => <Text type="secondary">{val || 'N/A'}</Text>,
+      },
+      {
+        title: 'Amount',
+        key: 'amount',
+        render: (_, record) => {
+          const total = Number(record.amount || record.grandTotal || 0);
+          return (
+            <Text strong>
+              ${total.toFixed(2)} ({record.currency || 'USD'})
+            </Text>
+          );
+        },
+      },
+      {
+        title: 'Status',
+        key: 'status',
+        render: (_, record) => <Badge status={record.status || 'Pending'} />,
+      },
+      {
+        title: 'Actions',
+        key: 'actions',
+        align: 'right',
+        render: (_, record) => {
+          const isPaid = (record.status || '').toLowerCase() === 'paid';
+          return (
+            <Space size="small">
+              <Tooltip title="View Invoice">
                 <Button
-                  type="primary"
+                  type="default"
                   size="small"
-                  icon={<CheckCircleOutlined />}
-                  onClick={() => handleMarkAsPaid(record)}
-                  style={{ background: '#059669', borderColor: '#059669' }}
+                  icon={<EyeOutlined />}
+                  onClick={() => setSelectedInvoice(record)}
                 >
-                  Mark Paid
+                  View
                 </Button>
               </Tooltip>
-            )}
-          </Space>
-        );
+              {!isPaid && (
+                <Tooltip title="Mark as Paid">
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<CheckCircleOutlined />}
+                    onClick={() => handleMarkAsPaid(record)}
+                    style={{ background: '#059669', borderColor: '#059669' }}
+                  >
+                    Mark Paid
+                  </Button>
+                </Tooltip>
+              )}
+            </Space>
+          );
+        },
       },
-    },
-  ];
+    ],
+    [handleMarkAsPaid]
+  );
 
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto' }}>
