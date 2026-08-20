@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import { Row, Col, Space, Form, App, Input, Select, InputNumber, Button } from "antd";
+import { Row, Col, Space, Form, App, Input, Select, InputNumber } from "antd";
+import Button from "../common/Button";
 import { useNavigate } from "react-router-dom";
 import {
   useGetRevenueCategoriesQuery,

@@ -3,7 +3,6 @@ import {
   Card,
   Form,
   Input,
-  Button,
   Typography,
   Space,
   Row,
@@ -15,6 +14,7 @@ import {
   EnvironmentOutlined,
   SendOutlined,
 } from '@ant-design/icons';
+import Button from '../components/common/Button';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;

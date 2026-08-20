@@ -1,7 +1,9 @@
-import React, { useMemo } from 'react';
-import { Table, Button, Typography, Tag } from 'antd';
+import React, { useMemo, useState } from 'react';
+import { Table, Typography, Tag } from 'antd';
+import Button from '../components/common/Button';
 import { FileDoneOutlined, PlusOutlined } from '@ant-design/icons';
 import { useGetProductsQuery } from '../redux/api/blackListApi';
+import NewQuotationModal from '../components/offers/NewQuotationModal';
 
 const { Title, Text } = Typography;
 
@@ -9,7 +11,10 @@ const OffersPage = () => {
   const { data: response = {}, isLoading } = useGetProductsQuery({ page: 1, limit: 10 });
   const products = Array.isArray(response) ? response : response.data || [];
 
-  const offers = useMemo(
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [manualOffers, setManualOffers] = useState([]);
+
+  const productOffers = useMemo(
     () =>
       products.map((p, index) => ({
         id: `OFF-2026-10${index + 1}`,
@@ -22,6 +27,13 @@ const OffersPage = () => {
       })),
     [products]
   );
+
+  const offers = useMemo(() => [...manualOffers, ...productOffers], [manualOffers, productOffers]);
+
+  const handleCreateQuotation = (quotation) => {
+    setManualOffers((prev) => [quotation, ...prev]);
+    setIsModalOpen(false);
+  };
 
   const columns = [
     {
@@ -97,7 +109,7 @@ const OffersPage = () => {
             Dynamic offer data loaded via RTK Query API
           </Text>
         </div>
-        <Button type="primary" icon={<PlusOutlined />}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)}>
           New Quotation
         </Button>
       </div>
@@ -116,6 +128,13 @@ const OffersPage = () => {
           overflow: 'hidden',
         }}
         pagination={{ pageSize: 10 }}
+      />
+
+      {/* New Quotation Modal */}
+      <NewQuotationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onCreate={handleCreateQuotation}
       />
     </div>
   );

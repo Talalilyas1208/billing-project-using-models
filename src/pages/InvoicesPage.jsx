@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
   Table,
-  Button,
   Space,
   Typography,
   Tag,
@@ -21,7 +20,9 @@ import { useNavigate } from 'react-router-dom';
 import InvoiceStats from '../components/invoices/InvoiceStats';
 import InvoiceDetailModal from '../components/invoices/InvoiceDetailModal';
 import NewCustomers from '../components/NewCustomers/NewCustomers';
+import Modals from '../components/Modal';
 import Badge from '../components/common/Badge';
+import Button from '../components/common/Button';
 import {
   useGetInvoicesQuery,
   useUpdateInvoiceMutation,
@@ -239,18 +240,17 @@ const InvoicesPage = () => {
       />
 
       {/* Create Customer Modal */}
-      <Modal
-        open={isCustomerModalOpen}
-        onCancel={() => setIsCustomerModalOpen(false)}
-        footer={null}
-        destroyOnHidden
+      <Modals
+        isOpen={isCustomerModalOpen}
+        onClose={() => setIsCustomerModalOpen(false)}
         title="Create New Customer"
+        footer={null}
       >
         <NewCustomers
           form={customerForm}
           onClose={() => setIsCustomerModalOpen(false)}
         />
-      </Modal>
+      </Modals>
 
       {/* Invoice Detail Modal */}
       <InvoiceDetailModal
