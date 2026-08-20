@@ -1,8 +1,27 @@
 import React, { useState } from 'react';
-import { X, Plus, Trash2, UploadCloud, FileText, CheckCircle2 } from 'lucide-react';
-import Button from '../common/Button';
-import Input from '../common/Input';
+import {
+  Modal,
+  Form,
+  Input,
+  Select,
+  Button,
+  Table,
+  InputNumber,
+  Space,
+  Typography,
+  Divider,
+  Upload,
+} from 'antd';
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  UploadOutlined,
+  FileTextOutlined,
+  CheckCircleOutlined,
+} from '@ant-design/icons';
 import { useAddInvoiceMutation } from '../../redux/api/invoicesApi';
+
+const { Text } = Typography;
 
 const prebuiltCustomers = [
   { name: 'Acme Corporation', email: 'billing@acme.com' },
@@ -13,26 +32,12 @@ const prebuiltCustomers = [
 
 const CreateInvoiceModal = ({ isOpen, onClose }) => {
   const [addInvoice, { isLoading }] = useAddInvoiceMutation();
-
-  const [customerName, setCustomerName] = useState(prebuiltCustomers[0].name);
-  const [customerEmail, setCustomerEmail] = useState(prebuiltCustomers[0].email);
-  const [issueDate, setIssueDate] = useState('2026-08-13');
-  const [dueDate, setDueDate] = useState('2026-08-27');
+  const [form] = Form.useForm();
 
   const [items, setItems] = useState([
     { id: 1, description: 'Software Consulting Service', quantity: 1, unitPrice: 1500, taxRate: 25 },
   ]);
-
   const [attachment, setAttachment] = useState(null);
-
-  if (!isOpen) return null;
-
-  const handleCustomerChange = (e) => {
-    const selectedName = e.target.value;
-    setCustomerName(selectedName);
-    const found = prebuiltCustomers.find((c) => c.name === selectedName);
-    if (found) setCustomerEmail(found.email);
-  };
 
   const handleAddItem = () => {
     setItems((prev) => [
@@ -58,255 +63,286 @@ const CreateInvoiceModal = ({ isOpen, onClose }) => {
     );
   };
 
-  const calculateSubtotal = () =>
-    items.reduce((sum, item) => sum + (item.quantity || 0) * (item.unitPrice || 0), 0);
-
-  const calculateTaxTotal = () =>
-    items.reduce(
-      (sum, item) =>
-        sum + (item.quantity || 0) * (item.unitPrice || 0) * ((item.taxRate || 0) / 100),
-      0
-    );
-
-  const subtotal = calculateSubtotal();
-  const taxTotal = calculateTaxTotal();
+  const subtotal = items.reduce((sum, item) => sum + (item.quantity || 0) * (item.unitPrice || 0), 0);
+  const taxTotal = items.reduce(
+    (sum, item) => sum + (item.quantity || 0) * (item.unitPrice || 0) * ((item.taxRate || 0) / 100),
+    0
+  );
   const grandTotal = subtotal + taxTotal;
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setAttachment(file.name);
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      const newInvoice = {
+        id: `INV-2026-${Math.floor(100 + Math.random() * 900)}`,
+        customerName: values.customerName,
+        customerEmail: values.customerEmail,
+        issueDate: values.issueDate,
+        dueDate: values.dueDate,
+        status: 'Pending',
+        items,
+        subtotal,
+        taxTotal,
+        grandTotal,
+        attachment,
+      };
+
+      await addInvoice(newInvoice);
+      form.resetFields();
+      onClose();
+    } catch (e) {
+      console.error('Validation / creation failed:', e);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const newInvoice = {
-      id: `INV-2026-${Math.floor(100 + Math.random() * 900)}`,
-      customerName,
-      customerEmail,
-      issueDate,
-      dueDate,
-      status: 'Pending',
-      items,
-      subtotal,
-      taxTotal,
-      grandTotal,
-      attachment,
-    };
-
-    await addInvoice(newInvoice);
-    onClose();
-  };
+  const lineItemColumns = [
+    {
+      title: 'Description',
+      key: 'description',
+      render: (_, record) => (
+        <Input
+          placeholder="Service or product description..."
+          value={record.description}
+          onChange={(e) => handleItemChange(record.id, 'description', e.target.value)}
+          size="small"
+        />
+      ),
+    },
+    {
+      title: 'Qty',
+      key: 'quantity',
+      width: 80,
+      render: (_, record) => (
+        <InputNumber
+          min={1}
+          value={record.quantity}
+          onChange={(v) => handleItemChange(record.id, 'quantity', v)}
+          size="small"
+          style={{ width: '100%' }}
+        />
+      ),
+    },
+    {
+      title: 'Price ($)',
+      key: 'unitPrice',
+      width: 110,
+      render: (_, record) => (
+        <InputNumber
+          min={0}
+          precision={2}
+          value={record.unitPrice}
+          onChange={(v) => handleItemChange(record.id, 'unitPrice', v)}
+          size="small"
+          style={{ width: '100%' }}
+        />
+      ),
+    },
+    {
+      title: 'Tax %',
+      key: 'taxRate',
+      width: 80,
+      render: (_, record) => (
+        <InputNumber
+          min={0}
+          value={record.taxRate}
+          onChange={(v) => handleItemChange(record.id, 'taxRate', v)}
+          size="small"
+          style={{ width: '100%' }}
+        />
+      ),
+    },
+    {
+      title: 'Subtotal',
+      key: 'subtotal',
+      width: 90,
+      align: 'right',
+      render: (_, record) => (
+        <Text strong>${((record.quantity || 0) * (record.unitPrice || 0)).toFixed(2)}</Text>
+      ),
+    },
+    {
+      title: '',
+      key: 'del',
+      width: 40,
+      render: (_, record) => (
+        <Button
+          type="text"
+          danger
+          size="small"
+          icon={<DeleteOutlined />}
+          onClick={() => handleRemoveItem(record.id)}
+        />
+      ),
+    },
+  ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-3xl overflow-hidden animate-modal my-8">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-blue-600 text-white rounded-lg">
-              <FileText className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900">New Billy.dk Invoice</h2>
-              <p className="text-xs text-slate-500">INV-2026-004 (Auto-generated)</p>
+    <Modal
+      open={isOpen}
+      onCancel={onClose}
+      width={720}
+      title={
+        <Space>
+          <div
+            style={{
+              padding: 6,
+              background: '#2563eb',
+              borderRadius: 6,
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <FileTextOutlined />
+          </div>
+          <div>
+            <div style={{ fontWeight: 700 }}>New Billy.dk Invoice</div>
+            <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 400 }}>
+              INV-2026-004 (Auto-generated)
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 rounded-lg transition-colors"
+        </Space>
+      }
+      footer={
+        <Space style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button onClick={onClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button
+            type="primary"
+            loading={isLoading}
+            icon={<CheckCircleOutlined />}
+            onClick={handleSubmit}
           >
-            <X className="w-5 h-5" />
-          </button>
+            Save &amp; Create Invoice
+          </Button>
+        </Space>
+      }
+      destroyOnHidden
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={{
+          customerName: prebuiltCustomers[0].name,
+          customerEmail: prebuiltCustomers[0].email,
+          issueDate: '2026-08-13',
+          dueDate: '2026-08-27',
+        }}
+        requiredMark={false}
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+          <Form.Item
+            name="customerName"
+            label="Customer Name"
+            rules={[{ required: true, message: 'Please select customer' }]}
+            style={{ margin: 0 }}
+          >
+            <Select
+              options={prebuiltCustomers.map((c) => ({ value: c.name, label: c.name }))}
+              onChange={(name) => {
+                const found = prebuiltCustomers.find((c) => c.name === name);
+                if (found) form.setFieldsValue({ customerEmail: found.email });
+              }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="customerEmail"
+            label="Customer Email"
+            rules={[{ required: true, type: 'email', message: 'Enter valid email' }]}
+            style={{ margin: 0 }}
+          >
+            <Input placeholder="customer@billing.com" />
+          </Form.Item>
+
+          <Form.Item
+            name="issueDate"
+            label="Issue Date"
+            rules={[{ required: true }]}
+            style={{ margin: 0 }}
+          >
+            <Input type="date" />
+          </Form.Item>
+
+          <Form.Item
+            name="dueDate"
+            label="Payment Due Date"
+            rules={[{ required: true }]}
+            style={{ margin: 0 }}
+          >
+            <Input type="date" />
+          </Form.Item>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Customer & Dates Section */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
-                Customer Name
-              </label>
-              <select
-                value={customerName}
-                onChange={handleCustomerChange}
-                className="w-full text-sm bg-white border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800"
-              >
-                {prebuiltCustomers.map((c) => (
-                  <option key={c.name} value={c.name}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <Input
-              label="Customer Email"
-              type="email"
-              value={customerEmail}
-              onChange={(e) => setCustomerEmail(e.target.value)}
-              placeholder="customer@billing.com"
-              required
-            />
-
-            <Input
-              label="Issue Date"
-              type="date"
-              value={issueDate}
-              onChange={(e) => setIssueDate(e.target.value)}
-              required
-            />
-
-            <Input
-              label="Payment Due Date"
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              required
-            />
+        {/* Line Items */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <Text strong style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Invoice Line Items
+            </Text>
+            <Button size="small" icon={<PlusOutlined />} onClick={handleAddItem}>
+              Add Row
+            </Button>
           </div>
+          <Table
+            dataSource={items}
+            columns={lineItemColumns}
+            rowKey="id"
+            pagination={false}
+            size="small"
+            bordered
+          />
+        </div>
 
-          {/* Line Items Table */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                Invoice Line Items
-              </h3>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                icon={Plus}
-                onClick={handleAddItem}
-              >
-                Add Row
+        {/* Attachment + Totals */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div>
+            <Text style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
+              Attachment / Contract (Optional)
+            </Text>
+            <Upload
+              beforeUpload={(file) => {
+                setAttachment(file.name);
+                return false;
+              }}
+              maxCount={1}
+              showUploadList={!!attachment}
+            >
+              <Button icon={<UploadOutlined />} block>
+                {attachment ? attachment : 'Click to upload invoice PDF or Image'}
               </Button>
-            </div>
-
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-100/70 text-slate-500 font-semibold border-b border-slate-200">
-                  <tr>
-                    <th className="py-2.5 px-3 w-1/2">Description</th>
-                    <th className="py-2.5 px-3 w-20">Qty</th>
-                    <th className="py-2.5 px-3 w-28">Price ($)</th>
-                    <th className="py-2.5 px-3 w-20">Tax %</th>
-                    <th className="py-2.5 px-3 w-28 text-right">Subtotal</th>
-                    <th className="py-2.5 px-2 w-10"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {items.map((item) => (
-                    <tr key={item.id}>
-                      <td className="p-2">
-                        <input
-                          type="text"
-                          placeholder="Service or product description..."
-                          value={item.description}
-                          onChange={(e) =>
-                            handleItemChange(item.id, 'description', e.target.value)
-                          }
-                          className="w-full text-xs px-2.5 py-1.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                          required
-                        />
-                      </td>
-                      <td className="p-2">
-                        <input
-                          type="number"
-                          min="1"
-                          value={item.quantity}
-                          onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
-                          className="w-full text-xs px-2 py-1.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        />
-                      </td>
-                      <td className="p-2">
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={item.unitPrice}
-                          onChange={(e) => handleItemChange(item.id, 'unitPrice', e.target.value)}
-                          className="w-full text-xs px-2 py-1.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        />
-                      </td>
-                      <td className="p-2">
-                        <input
-                          type="number"
-                          min="0"
-                          value={item.taxRate}
-                          onChange={(e) => handleItemChange(item.id, 'taxRate', e.target.value)}
-                          className="w-full text-xs px-2 py-1.5 border border-slate-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        />
-                      </td>
-                      <td className="p-2 text-right font-bold text-slate-800">
-                        ${((item.quantity || 0) * (item.unitPrice || 0)).toFixed(2)}
-                      </td>
-                      <td className="p-2 text-center">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveItem(item.id)}
-                          className="p-1 text-slate-400 hover:text-red-600 rounded transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            </Upload>
+            <Text type="secondary" style={{ fontSize: 10, display: 'block', marginTop: 4 }}>
+              Supports PDF, PNG, JPG up to 10MB
+            </Text>
           </div>
 
-          {/* Attachment & Financial Summary Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-            {/* File Dropzone */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
-                Attachment / Contract (Optional)
-              </label>
-              <label className="border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer bg-slate-50/50 hover:bg-blue-50/20 transition-all text-center">
-                <UploadCloud className="w-6 h-6 text-blue-500 mb-1" />
-                <span className="text-xs font-semibold text-slate-700">
-                  {attachment ? attachment : 'Click to upload invoice PDF or Image'}
-                </span>
-                <span className="text-[10px] text-slate-400 mt-0.5">Supports PDF, PNG, JPG up to 10MB</span>
-                <input type="file" className="hidden" onChange={handleFileUpload} />
-              </label>
+          <div
+            style={{
+              background: '#f8fafc',
+              borderRadius: 8,
+              border: '1px solid #e2e8f0',
+              padding: 14,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: 13, marginBottom: 4 }}>
+              <span>Subtotal:</span>
+              <Text strong>${subtotal.toFixed(2)}</Text>
             </div>
-
-            {/* Financial Totals Summary */}
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-600">
-                <span>Subtotal:</span>
-                <span className="font-semibold">${subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>VAT / Tax (25%):</span>
-                <span className="font-semibold">${taxTotal.toFixed(2)}</span>
-              </div>
-              <div className="h-px bg-slate-200 my-1" />
-              <div className="flex justify-between text-slate-900 font-bold text-sm">
-                <span>Grand Total:</span>
-                <span className="text-blue-600">${grandTotal.toFixed(2)}</span>
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: 13, marginBottom: 4 }}>
+              <span>VAT / Tax (25%):</span>
+              <Text strong>${taxTotal.toFixed(2)}</Text>
+            </div>
+            <Divider style={{ margin: '8px 0' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
+              <Text strong>Grand Total:</Text>
+              <Text strong style={{ color: '#2563eb', fontSize: 15 }}>${grandTotal.toFixed(2)}</Text>
             </div>
           </div>
-
-          {/* Modal Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
-            <Button variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" isLoading={isLoading} icon={CheckCircle2}>
-              Save & Create Invoice
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </Form>
+    </Modal>
   );
 };
 
