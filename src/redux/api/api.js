@@ -1,16 +1,29 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { REHYDRATE } from "redux-persist";
 
+/**
+ * Main RTK Query API Slice with Redux-Persist & Tag-Based Cache Invalidation
+ */
 export const api = createApi({
   reducerPath: "api",
   baseQuery: fetchBaseQuery({ baseUrl: "" }),
+
+  // 1. PERSISTENCE REHYDRATION HANDLER (redux-persist integration)
+  // Extracts persisted cache state on app startup or page refresh
   extractRehydrationInfo(action, { reducerPath }) {
     if (action.type === REHYDRATE) {
       return action.payload?.[reducerPath];
     }
   },
+
+  // 2. HTTP FETCH CACHE OVERRIDE
+  // Ensures fresh network fetches without browser disk cache interference
   fetchFn: (input, init) => fetch(input, { ...init, cache: "no-store" }),
+
+  // 3. AUTO-REFETCH ON NETWORK RECONNECT
   refetchOnReconnect: true,
+
+  // 4. CACHE TAG REGISTRY (Used for automatic UI re-renders on mutation updates)
   tagTypes: [
     "Sidebar",
     "Currency",
@@ -25,6 +38,7 @@ export const api = createApi({
     "Invoice",
     "Company",
   ],
+
   endpoints: (builder) => ({
     getSidebar: builder.query({
       query: () => "/api/sidebar",
@@ -75,6 +89,9 @@ export const api = createApi({
       query: () => "/api/invoice",
       providesTags: [{ type: "Invoice", id: "LIST" }],
     }),
+
+    // MUTATIONS WITH AUTOMATIC CACHE INVALIDATION
+    // When addInvoice, updateInvoice, or deleteInvoice run, invalidatesTags triggers refetch of getInvoices!
     addInvoice: builder.mutation({
       query: (invoiceData) => ({
         url: "/api/invoice",

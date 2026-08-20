@@ -1,10 +1,15 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
+/**
+ * Secondary RTK Query API Slice (blackListApi)
+ * Handles Customer & Product directory caching and mutation invalidations
+ */
 export const blackListApi = createApi({
   reducerPath: "blackListApi",
   baseQuery: fetchBaseQuery({ baseUrl: "" }),
   tagTypes: ["Customer", "Products", "Columns"],
   endpoints: (builder) => ({
+    // 1. CUSTOMER CACHE QUERY & MUTATION
     getCustomers: builder.query({
       query: ({ search = "", page = 1, limit = 10 } = {}) =>
         `/api/customer?search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`,
@@ -22,11 +27,17 @@ export const blackListApi = createApi({
         method: "POST",
         body: customer,
       }),
+
+      // CACHE INVALIDATION: Triggers automatic refetch of getCustomers query when a new customer is created!
       invalidatesTags: [{ type: "Customer", id: "LIST" }],
     }),
+
+    // 2. PRODUCT CACHE QUERY & MUTATIONS
     getProducts: builder.query({
       query: ({ search = "", page = 1, limit = 10 } = {}) =>
         `/api/products?search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`,
+
+      // CACHE REUSE OPTIMIZATION: Prevents unnecessary network re-fetches when navigating back to Products
       refetchOnMountOrArgChange: false,
 
       providesTags: (result) =>
