@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { Mail, Lock, LogIn, ShieldCheck } from 'lucide-react';
-import Button from '../common/Button';
-import Input from '../common/Input';
+import { Modal, Form, Input, Button, Alert, Typography } from 'antd';
+import { MailOutlined, LockOutlined, LoginOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+
+const { Title, Text } = Typography;
 
 /**
  * Direct Authentication component (No Redux auth slice overhead)
- * Directly manages user authentication session.
+ * Directly manages user authentication session using Ant Design Modal / Form.
  */
-const DirectAuthModal = ({ onAuthenticate }) => {
-  const [email, setEmail] = useState('user@billy.dk');
-  const [password, setPassword] = useState('123456');
+const DirectAuthModal = ({ onAuthenticate, open = true, onClose }) => {
+  const [form] = Form.useForm();
   const [error, setError] = useState('');
 
-  const handleDirectAuth = (e) => {
-    e.preventDefault();
+  const handleDirectAuth = (values) => {
+    const { email, password } = values;
     if (!email || !email.includes('@')) {
       setError('Please enter a valid email address.');
       return;
@@ -36,54 +36,105 @@ const DirectAuthModal = ({ onAuthenticate }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md p-8 animate-modal">
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 text-white font-bold text-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
-            B
-          </div>
-          <h2 className="text-xl font-extrabold text-slate-900">Direct Authentication</h2>
-          <p className="text-xs text-slate-500 mt-1">Sign in directly to Billy.dk Mock Server</p>
+    <Modal
+      open={open}
+      onCancel={onClose}
+      footer={null}
+      width={440}
+      centered
+      destroyOnHidden
+    >
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <div
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            background: '#2563eb',
+            color: '#fff',
+            fontWeight: 700,
+            fontSize: 20,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 12px',
+          }}
+        >
+          B
         </div>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleDirectAuth} className="space-y-4">
-          <Input
-            label="Email Address"
-            type="email"
-            placeholder="user@billy.dk"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            icon={Mail}
-            required
-          />
-
-          <Input
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            icon={Lock}
-            required
-          />
-
-          <Button type="submit" variant="primary" className="w-full" icon={LogIn}>
-            Authenticate & Access Dashboard
-          </Button>
-        </form>
-
-        <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-          <span>Direct Auth Session (No Redux Slice Overhead)</span>
-        </div>
+        <Title level={4} style={{ margin: 0 }}>
+          Direct Authentication
+        </Title>
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          Sign in directly to Billy.dk Mock Server
+        </Text>
       </div>
-    </div>
+
+      {error && (
+        <Alert message={error} type="error" showIcon style={{ marginBottom: 16, borderRadius: 8 }} />
+      )}
+
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleDirectAuth}
+        initialValues={{ email: 'user@billy.dk', password: 'password123' }}
+        requiredMark={false}
+      >
+        <Form.Item
+          label="Email Address"
+          name="email"
+          rules={[{ required: true, message: 'Please enter your email' }]}
+        >
+          <Input
+            size="large"
+            placeholder="user@billy.dk"
+            prefix={<MailOutlined style={{ color: '#94a3b8' }} />}
+          />
+        </Form.Item>
+
+        <Form.Item
+          label="Password"
+          name="password"
+          rules={[{ required: true, message: 'Please enter your password' }]}
+        >
+          <Input.Password
+            size="large"
+            placeholder="••••••••"
+            prefix={<LockOutlined style={{ color: '#94a3b8' }} />}
+          />
+        </Form.Item>
+
+        <Form.Item style={{ marginBottom: 16 }}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            size="large"
+            block
+            icon={<LoginOutlined />}
+          >
+            Authenticate &amp; Access Dashboard
+          </Button>
+        </Form.Item>
+      </Form>
+
+      <div
+        style={{
+          marginTop: 16,
+          paddingTop: 16,
+          borderTop: '1px solid #f1f5f9',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
+        }}
+      >
+        <SafetyCertificateOutlined style={{ color: '#10b981', fontSize: 12 }} />
+        <Text style={{ fontSize: 11, color: '#94a3b8' }}>
+          Direct Auth Session (No Redux Slice Overhead)
+        </Text>
+      </div>
+    </Modal>
   );
 };
 
