@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Form,
   Input,
-  Button,
   Card,
   Typography,
   Alert,
@@ -11,6 +10,7 @@ import {
   Row,
   Col,
 } from 'antd';
+import Button from '../components/common/Button';
 import {
   MailOutlined,
   LockOutlined,

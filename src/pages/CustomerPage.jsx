@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Table, Button, Space, Typography, Tag, Modal, Form } from 'antd';
+import { Table, Space, Typography, Tag, Form } from 'antd';
+import Button from '../components/common/Button';
 import {
   TeamOutlined,
   PlusOutlined,
@@ -117,7 +118,9 @@ const CustomerPage = () => {
       <Modals
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        rest={{ title: 'Create New Customer', width: 700, destroyOnClose: true }}
+        title="Create New Customer"
+        width={700}
+        footer={null}
       >
         <NewCustomers
           refetchCustomers={refetchCustomers}

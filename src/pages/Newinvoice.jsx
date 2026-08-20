@@ -3,7 +3,6 @@ import {
   Form,
   Input,
   Select,
-  Button,
   Table,
   InputNumber,
   Space,
@@ -21,6 +20,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import Modals from '../components/Modal';
+import Button from '../components/common/Button';
 import CardComponent from '../components/CardComponent';
 import Config from '../components/Config';
 import NewCustomers from '../components/NewCustomers/NewCustomers';
@@ -365,7 +365,8 @@ export default function Newinvoice() {
       <Modals
         isOpen={isOpen}
         onClose={handleCloseCreateCustomer}
-        rest={{ title: 'Create New Customer' }}
+        title="Create New Customer"
+        footer={null}
       >
         <NewCustomers
           refetchCustomers={refetchCustomers}
@@ -377,7 +378,9 @@ export default function Newinvoice() {
       <Modals
         isOpen={isProductModalOpen}
         onClose={handleCloseCreateProduct}
-        rest={{ title: 'Add New Product', width: 800 }}
+        title="Add New Product"
+        width={800}
+        footer={null}
       >
         <ManageProductForm
           form={productForm}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Table, Button, Space, Typography, Tooltip, Modal, Form, App as AntApp } from 'antd';
+import { Table, Space, Typography, Tooltip, Modal, Form, App as AntApp } from 'antd';
+import Button from '../components/common/Button';
 import {
   AppstoreOutlined,
   PlusOutlined,
@@ -7,6 +8,7 @@ import {
   DeleteOutlined,
 } from '@ant-design/icons';
 import ManageProductForm from '../components/products/ManageProductForm';
+import Modals from '../components/Modal';
 import { useGetProductsQuery, useDeleteProductMutation } from '../redux/api/blackListApi';
 
 const { Title, Text } = Typography;
@@ -171,13 +173,12 @@ const ProductsPage = () => {
         />
 
         {/* Manage Product Modal */}
-        <Modal
+        <Modals
           title={editingProduct ? 'Edit Product' : 'Manage Product'}
-          open={isModalVisible}
-          onCancel={() => setIsModalVisible(false)}
+          isOpen={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
           footer={null}
           width={800}
-          destroyOnClose
         >
           <ManageProductForm
             form={form}
@@ -185,7 +186,7 @@ const ProductsPage = () => {
             onClose={() => setIsModalVisible(false)}
             refetchProducts={refetch}
           />
-        </Modal>
+        </Modals>
       </div>
     </AntApp>
   );

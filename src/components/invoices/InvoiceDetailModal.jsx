@@ -1,10 +1,8 @@
 import React from 'react';
 import {
-  Modal,
   Descriptions,
   Table,
   Typography,
-  Button,
   Space,
   Divider,
   Skeleton,
@@ -14,7 +12,9 @@ import {
   DownloadOutlined,
   PaperClipOutlined,
 } from '@ant-design/icons';
+import Button from '../common/Button';
 import Badge from '../common/Badge';
+import Modals from '../Modal';
 import { useGetCompanyDataQuery } from '../../redux/api/api';
 
 const { Title, Text } = Typography;
@@ -86,9 +86,9 @@ const InvoiceDetailModal = ({ invoice, onClose }) => {
   ];
 
   return (
-    <Modal
-      open={!!invoice}
-      onCancel={onClose}
+    <Modals
+      isOpen={!!invoice}
+      onClose={onClose}
       footer={
         <Space>
           <Button icon={<PrinterOutlined />} onClick={() => window.print()}>
@@ -106,7 +106,6 @@ const InvoiceDetailModal = ({ invoice, onClose }) => {
           <Badge status={invoice.status} />
         </Space>
       }
-      destroyOnHidden
     >
       {/* Company + Invoice Meta */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -231,7 +230,7 @@ const InvoiceDetailModal = ({ invoice, onClose }) => {
           </div>
         </>
       )}
-    </Modal>
+    </Modals>
   );
 };
 

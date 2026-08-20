@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, Space, Typography } from 'antd';
+import { Space, Typography } from 'antd';
+import Button from '../common/Button';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
