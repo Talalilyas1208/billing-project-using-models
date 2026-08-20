@@ -23,6 +23,7 @@ export const api = createApi({
     "DesignOptions",
     "Approvebutton",
     "Invoice",
+    "Company",
   ],
   endpoints: (builder) => ({
     getSidebar: builder.query({
@@ -66,6 +67,10 @@ export const api = createApi({
       query: () => "/api/approvebutton",
       providesTags: [{ type: "Approvebutton", id: "List" }],
     }),
+    getCompanyData: builder.query({
+      query: () => "/api/companydata",
+      providesTags: [{ type: "Company", id: "DETAIL" }],
+    }),
     getInvoices: builder.query({
       query: () => "/api/invoice",
       providesTags: [{ type: "Invoice", id: "LIST" }],
@@ -107,6 +112,7 @@ export const {
   useGetPriceModeOptionsQuery,
   useGetDesignOptionsQuery,
   useGetapprovebuttonQuery,
+  useGetCompanyDataQuery,
   useGetInvoicesQuery,
   useAddInvoiceMutation,
   useUpdateInvoiceMutation,
