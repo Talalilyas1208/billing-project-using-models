@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
-import { Users, Building, Mail, UserPlus, Plus } from 'lucide-react';
-import { Form } from 'antd';
+import { Table, Button, Space, Typography, Tag, Modal, Form } from 'antd';
+import {
+  TeamOutlined,
+  PlusOutlined,
+  UserAddOutlined,
+  MailOutlined,
+  BankOutlined,
+} from '@ant-design/icons';
 import { useGetCustomersQuery } from '../redux/api/blackListApi';
 import Modals from '../components/Modal';
 import NewCustomers from '../components/NewCustomers/NewCustomers';
-import Button from '../components/common/Button';
+
+const { Title, Text } = Typography;
 
 const CustomerPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,31 +29,86 @@ const CustomerPage = () => {
     ? response.data
     : [];
 
-  const handleOpenModal = () => setIsModalOpen(true);
+  const handleOpenModal  = () => setIsModalOpen(true);
   const handleCloseModal = () => {
     setIsModalOpen(false);
     if (refetchCustomers) refetchCustomers();
   };
 
+  const columns = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 130,
+      render: (val) => (
+        <Text strong style={{ color: '#2563eb', fontFamily: 'monospace' }}>
+          {String(val).slice(0, 8)}...
+        </Text>
+      ),
+    },
+    {
+      title: 'Company Name',
+      key: 'company',
+      render: (_, record) => (
+        <Space>
+          <BankOutlined style={{ color: '#94a3b8' }} />
+          <Text strong>{record.Company_name || record.name}</Text>
+        </Space>
+      ),
+    },
+    {
+      title: 'Billing Email',
+      dataIndex: 'email',
+      key: 'email',
+      render: (val) => (
+        <Space>
+          <MailOutlined style={{ color: '#94a3b8', fontSize: 12 }} />
+          <Text>{val}</Text>
+        </Space>
+      ),
+    },
+    {
+      title: 'Country',
+      dataIndex: 'country',
+      key: 'country',
+      render: (val) => <Text type="secondary">{val || 'N/A'}</Text>,
+    },
+    {
+      title: 'Status',
+      key: 'status',
+      render: (_, record) => (
+        <Tag color="success" style={{ borderRadius: 20, fontWeight: 600 }}>
+          {record.status || 'Active'}
+        </Tag>
+      ),
+    },
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header with Create Customer Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+      {/* Page Header */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 16,
+          marginBottom: 24,
+        }}
+      >
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Users className="w-6 h-6 text-blue-600" />
+          <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <TeamOutlined style={{ color: '#2563eb' }} />
             Customer Directory
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          </Title>
+          <Text type="secondary" style={{ fontSize: 12 }}>
             Manage your client profiles, billing emails, and customer directory
-          </p>
+          </Text>
         </div>
 
-        <Button
-          variant="primary"
-          icon={Plus}
-          onClick={handleOpenModal}
-        >
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenModal}>
           Create Customer
         </Button>
       </div>
@@ -55,11 +117,7 @@ const CustomerPage = () => {
       <Modals
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        rest={{
-          title: "Create New Customer",
-          width: 700,
-          destroyOnClose: true,
-        }}
+        rest={{ title: 'Create New Customer', width: 700, destroyOnClose: true }}
       >
         <NewCustomers
           refetchCustomers={refetchCustomers}
@@ -69,73 +127,39 @@ const CustomerPage = () => {
       </Modals>
 
       {/* Customers Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-slate-100/70 text-slate-500 font-semibold uppercase border-b border-slate-200">
-            <tr>
-              <th className="py-3 px-4">ID</th>
-              <th className="py-3 px-4">Company Name</th>
-              <th className="py-3 px-4">Billing Email</th>
-              <th className="py-3 px-4">Country</th>
-              <th className="py-3 px-4">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {isLoading ? (
-              <tr>
-                <td colSpan={5} className="py-8 text-center text-slate-400 animate-pulse">
-                  Loading customer directory...
-                </td>
-              </tr>
-            ) : customers.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="py-12 text-center text-slate-500 space-y-3">
-                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
-                    <Users className="w-6 h-6" />
-                  </div>
-                  <p className="text-sm font-semibold text-slate-700">No customers found</p>
-                  <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                    You haven't added any customers yet. Click below to add your first customer.
-                  </p>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    icon={UserPlus}
-                    onClick={handleOpenModal}
-                    className="mx-auto"
-                  >
-                    Create First Customer
-                  </Button>
-                </td>
-              </tr>
-            ) : (
-              customers.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="py-3 px-4 font-bold text-blue-600 truncate max-w-[120px]">
-                    {String(c.id).slice(0, 8)}...
-                  </td>
-                  <td className="py-3 px-4 font-semibold text-slate-800 flex items-center gap-2">
-                    <Building className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{c.Company_name || c.name}</span>
-                  </td>
-                  <td className="py-3 px-4 text-slate-600">
-                    <div className="flex items-center gap-1.5">
-                      <Mail className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{c.email}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-slate-500">{c.country || 'N/A'}</td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      {c.status || 'Active'}
-                    </span>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Table
+        dataSource={customers}
+        columns={columns}
+        rowKey="id"
+        loading={isLoading}
+        size="middle"
+        style={{
+          background: '#fff',
+          borderRadius: 12,
+          border: '1px solid #e2e8f0',
+          overflow: 'hidden',
+        }}
+        pagination={{ pageSize: 10, showSizeChanger: true }}
+        locale={{
+          emptyText: (
+            <div style={{ padding: '40px 0', textAlign: 'center' }}>
+              <TeamOutlined style={{ fontSize: 40, color: '#cbd5e1', marginBottom: 12 }} />
+              <div style={{ fontWeight: 600, color: '#475569' }}>No customers found</div>
+              <div style={{ color: '#94a3b8', fontSize: 12, margin: '8px 0 16px' }}>
+                You haven't added any customers yet.
+              </div>
+              <Button
+                type="primary"
+                size="small"
+                icon={<UserAddOutlined />}
+                onClick={handleOpenModal}
+              >
+                Create First Customer
+              </Button>
+            </div>
+          ),
+        }}
+      />
     </div>
   );
 };

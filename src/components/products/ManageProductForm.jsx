@@ -251,7 +251,7 @@ export default function ManageProductForm(props) {
               color: "#fff",
               borderRadius: "0.5rem",
             }}
-            className="py-3 px-8"
+            style={{ padding: '0 32px', height: 40 }}
           >
             {isediting ? "Update" : "Save Product"}
           </Button>

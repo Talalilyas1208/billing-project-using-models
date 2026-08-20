@@ -1,83 +1,140 @@
 import React from 'react';
-import { Phone, Mail, MapPin, Send } from 'lucide-react';
-import Button from '../components/common/Button';
+import {
+  Card,
+  Form,
+  Input,
+  Button,
+  Typography,
+  Space,
+  Row,
+  Col,
+} from 'antd';
+import {
+  PhoneOutlined,
+  MailOutlined,
+  EnvironmentOutlined,
+  SendOutlined,
+} from '@ant-design/icons';
+
+const { Title, Text } = Typography;
+const { TextArea } = Input;
 
 const ContactPage = () => {
+  const [form] = Form.useForm();
+
+  const handleSend = () => {
+    form.validateFields().then(() => {
+      alert('Message sent to Billy.dk support!');
+      form.resetFields();
+    });
+  };
+
+  const contactDetails = [
+    {
+      icon: <PhoneOutlined style={{ color: '#2563eb' }} />,
+      bg: '#eff6ff',
+      title: '+45 60 24 60 24',
+      sub: 'Mon - Fri: 08:30 - 17:00 CET',
+    },
+    {
+      icon: <MailOutlined style={{ color: '#059669' }} />,
+      bg: '#f0fdf4',
+      title: 'support@billy.dk',
+      sub: 'Avg. response time: 15 mins',
+    },
+    {
+      icon: <EnvironmentOutlined style={{ color: '#475569' }} />,
+      bg: '#f8fafc',
+      title: 'Billy.dk Headquarters',
+      sub: 'Østergade 12, 1100 København K, Denmark',
+    },
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-          <Phone className="w-6 h-6 text-blue-600" />
-          Support & Accounting Contact
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+    <div style={{ maxWidth: 900, margin: '0 auto' }}>
+      {/* Page Header */}
+      <div style={{ marginBottom: 24 }}>
+        <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <PhoneOutlined style={{ color: '#2563eb' }} />
+          Support &amp; Accounting Contact
+        </Title>
+        <Text type="secondary" style={{ fontSize: 12 }}>
           Get in touch with Billy.dk accounting advisors and technical support.
-        </p>
+        </Text>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
-          <h2 className="text-sm font-bold text-slate-900">Direct Advisor Desk</h2>
-          <div className="space-y-3 text-xs text-slate-600">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                <Phone className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="font-semibold text-slate-800">+45 60 24 60 24</p>
-                <p className="text-[10px] text-slate-400">Mon - Fri: 08:30 - 17:00 CET</p>
-              </div>
-            </div>
+      <Row gutter={[24, 24]}>
+        {/* Contact Info Card */}
+        <Col xs={24} md={12}>
+          <Card
+            title={<Text strong>Direct Advisor Desk</Text>}
+            style={{ borderRadius: 12, height: '100%' }}
+          >
+            <Space direction="vertical" size={16} style={{ width: '100%' }}>
+              {contactDetails.map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 8,
+                      background: item.bg,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 16,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {item.icon}
+                  </div>
+                  <div>
+                    <Text strong style={{ fontSize: 13, display: 'block' }}>
+                      {item.title}
+                    </Text>
+                    <Text type="secondary" style={{ fontSize: 11 }}>
+                      {item.sub}
+                    </Text>
+                  </div>
+                </div>
+              ))}
+            </Space>
+          </Card>
+        </Col>
 
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-                <Mail className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="font-semibold text-slate-800">support@billy.dk</p>
-                <p className="text-[10px] text-slate-400">Avg. response time: 15 mins</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-slate-100 text-slate-600 rounded-lg">
-                <MapPin className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="font-semibold text-slate-800">Billy.dk Headquarters</p>
-                <p className="text-[10px] text-slate-400">Østergade 12, 1100 København K, Denmark</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
-          <h2 className="text-sm font-bold text-slate-900">Send Quick Message</h2>
-          <form onSubmit={(e) => { e.preventDefault(); alert('Message sent to Billy.dk support!'); }} className="space-y-3 text-xs">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Subject</label>
-              <input
-                type="text"
-                placeholder="Tax or VAT question..."
-                className="w-full text-xs p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Message</label>
-              <textarea
-                rows="3"
-                placeholder="Describe your inquiry..."
-                className="w-full text-xs p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                required
-              />
-            </div>
-            <Button type="submit" variant="primary" icon={Send} className="w-full">
-              Send Message
-            </Button>
-          </form>
-        </div>
-      </div>
+        {/* Quick Message Card */}
+        <Col xs={24} md={12}>
+          <Card
+            title={<Text strong>Send Quick Message</Text>}
+            style={{ borderRadius: 12, height: '100%' }}
+          >
+            <Form form={form} layout="vertical" requiredMark={false}>
+              <Form.Item
+                name="subject"
+                label="Subject"
+                rules={[{ required: true, message: 'Please enter a subject' }]}
+              >
+                <Input placeholder="Tax or VAT question..." />
+              </Form.Item>
+              <Form.Item
+                name="message"
+                label="Message"
+                rules={[{ required: true, message: 'Please enter your message' }]}
+              >
+                <TextArea rows={4} placeholder="Describe your inquiry..." />
+              </Form.Item>
+              <Button
+                type="primary"
+                block
+                icon={<SendOutlined />}
+                onClick={handleSend}
+              >
+                Send Message
+              </Button>
+            </Form>
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 };

@@ -1,8 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, LogIn, UserPlus, ShieldCheck, Chrome, Facebook } from 'lucide-react';
-import Button from '../components/common/Button';
-import Input from '../components/common/Input';
+import {
+  Form,
+  Input,
+  Button,
+  Card,
+  Typography,
+  Alert,
+  Divider,
+  Space,
+  Row,
+  Col,
+} from 'antd';
+import {
+  MailOutlined,
+  LockOutlined,
+  LoginOutlined,
+  UserAddOutlined,
+  SafetyCertificateOutlined,
+  GoogleOutlined,
+} from '@ant-design/icons';
 import {
   loginWithEmail,
   registerWithEmail,
@@ -11,76 +28,54 @@ import {
   formatFirebaseError,
 } from '../firebase/config';
 
+const { Title, Text, Link } = Typography;
+
 const LoginPage = ({ onAuthenticate }) => {
   const navigate = useNavigate();
+  const [form] = Form.useForm();
 
   const [isRegisterMode, setIsRegisterMode] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-
-  const [error, setError] = useState('');
+  const [error, setError]         = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading]  = useState(false);
 
-  // Clear any existing stale session whenever landing on the login page
   useEffect(() => {
     localStorage.removeItem('direct_user_session');
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (values) => {
     setError('');
     setSuccessMsg('');
-
-    const trimmedEmail = email.trim();
-
-    if (!trimmedEmail || !trimmedEmail.includes('@')) {
-      setError('Please enter a valid email address.');
-      return;
-    }
-    if (!password) {
-      setError('Please enter your password.');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
       if (isRegisterMode) {
-        // Real Firebase Account Creation
-        const user = await registerWithEmail(trimmedEmail, password, displayName);
+        const user = await registerWithEmail(values.email, values.password, values.displayName);
         const userSession = {
           uid: user.uid,
           email: user.email,
-          name: user.displayName || trimmedEmail.split('@')[0],
+          name: user.displayName || values.email.split('@')[0],
           photoURL: user.photoURL || null,
           authenticatedAt: new Date().toISOString(),
         };
-
         localStorage.setItem('direct_user_session', JSON.stringify(userSession));
         onAuthenticate(userSession);
         navigate('/dashboard/invoices', { replace: true });
       } else {
-        // Real Firebase Email/Password Sign In
-        // Will THROW Firebase error if email is not registered or password is incorrect
-        const user = await loginWithEmail(trimmedEmail, password);
-
+        const user = await loginWithEmail(values.email, values.password);
         const userSession = {
           uid: user.uid,
           email: user.email,
-          name: user.displayName || trimmedEmail.split('@')[0],
+          name: user.displayName || values.email.split('@')[0],
           photoURL: user.photoURL || null,
           authenticatedAt: new Date().toISOString(),
         };
-
         localStorage.setItem('direct_user_session', JSON.stringify(userSession));
         onAuthenticate(userSession);
         navigate('/dashboard/invoices', { replace: true });
       }
     } catch (err) {
       console.error('Firebase Auth error:', err);
-      // Wipe session and block login if Firebase authentication fails
       localStorage.removeItem('direct_user_session');
       setError(formatFirebaseError(err));
     } finally {
@@ -90,7 +85,6 @@ const LoginPage = ({ onAuthenticate }) => {
 
   const handleGoogleLogin = async () => {
     setError('');
-    setSuccessMsg('');
     setIsLoading(true);
     try {
       const user = await loginWithGoogle();
@@ -101,7 +95,6 @@ const LoginPage = ({ onAuthenticate }) => {
         photoURL: user.photoURL || null,
         authenticatedAt: new Date().toISOString(),
       };
-
       localStorage.setItem('direct_user_session', JSON.stringify(userSession));
       onAuthenticate(userSession);
       navigate('/dashboard/invoices', { replace: true });
@@ -115,7 +108,6 @@ const LoginPage = ({ onAuthenticate }) => {
 
   const handleFacebookLogin = async () => {
     setError('');
-    setSuccessMsg('');
     setIsLoading(true);
     try {
       const user = await loginWithFacebook();
@@ -126,7 +118,6 @@ const LoginPage = ({ onAuthenticate }) => {
         photoURL: user.photoURL || null,
         authenticatedAt: new Date().toISOString(),
       };
-
       localStorage.setItem('direct_user_session', JSON.stringify(userSession));
       onAuthenticate(userSession);
       navigate('/dashboard/invoices', { replace: true });
@@ -138,147 +129,167 @@ const LoginPage = ({ onAuthenticate }) => {
     }
   };
 
+  const toggleMode = () => {
+    setIsRegisterMode((prev) => !prev);
+    setError('');
+    form.resetFields();
+  };
+
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md p-8 animate-modal">
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 text-white font-bold text-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#0f172a',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+      }}
+    >
+      <Card
+        style={{
+          width: '100%',
+          maxWidth: 440,
+          borderRadius: 16,
+          boxShadow: '0 25px 50px rgba(0,0,0,0.4)',
+          border: '1px solid #e2e8f0',
+        }}
+        styles={{ body: { padding: 32 } }}
+      >
+        {/* Brand */}
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              background: '#2563eb',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 22,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 12px',
+              boxShadow: '0 4px 12px rgba(37,99,235,0.4)',
+            }}
+          >
             B
           </div>
-          <h2 className="text-xl font-extrabold text-slate-900">
+          <Title level={4} style={{ margin: 0 }}>
             {isRegisterMode ? 'Create Billy.dk Account' : 'Sign in to Billy.dk'}
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          </Title>
+          <Text type="secondary" style={{ fontSize: 12 }}>
             {isRegisterMode
               ? 'Register a new account in Firebase Authentication'
               : 'Sign in with your registered Firebase account'}
-          </p>
+          </Text>
         </div>
 
+        {/* Error / Success */}
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium">
-            {error}
-          </div>
+          <Alert message={error} type="error" showIcon style={{ marginBottom: 16, borderRadius: 8 }} />
         )}
-
         {successMsg && (
-          <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-600 font-medium">
-            {successMsg}
-          </div>
+          <Alert message={successMsg} type="success" showIcon style={{ marginBottom: 16, borderRadius: 8 }} />
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form */}
+        <Form form={form} layout="vertical" onFinish={handleSubmit} requiredMark={false}>
           {isRegisterMode && (
-            <Input
+            <Form.Item
+              name="displayName"
               label="Full Name / Display Name"
-              type="text"
-              placeholder="John Doe"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              required
-            />
+              rules={[{ required: true, message: 'Please enter your name' }]}
+            >
+              <Input size="large" placeholder="John Doe" />
+            </Form.Item>
           )}
 
-          <Input
+          <Form.Item
+            name="email"
             label="Email Address"
-            type="email"
-            placeholder="user@billy.dk"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            icon={Mail}
-            required
-          />
-
-          <Input
-            label="Password"
-            type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            icon={Lock}
-            required
-          />
-
-          <Button
-            type="submit"
-            variant="primary"
-            className="w-full"
-            isLoading={isLoading}
-            icon={isRegisterMode ? UserPlus : LogIn}
+            rules={[{ required: true, type: 'email', message: 'Please enter a valid email' }]}
           >
-            {isRegisterMode ? 'Register Account in Firebase' : 'Sign In with Firebase'}
-          </Button>
-        </form>
+            <Input
+              size="large"
+              placeholder="user@billy.dk"
+              prefix={<MailOutlined style={{ color: '#94a3b8' }} />}
+            />
+          </Form.Item>
 
-        {/* Toggle between Sign In and Register Mode */}
-        <div className="mt-4 text-center text-xs text-slate-500">
-          {isRegisterMode ? (
-            <>
-              Already have an account?{' '}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsRegisterMode(false);
-                  setError('');
-                }}
-                className="font-bold text-blue-600 hover:text-blue-700 underline"
-              >
-                Sign In
-              </button>
-            </>
-          ) : (
-            <>
-              Don't have an account?{' '}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsRegisterMode(true);
-                  setError('');
-                }}
-                className="font-bold text-blue-600 hover:text-blue-700 underline"
-              >
-                Register / Sign Up
-              </button>
-            </>
-          )}
+          <Form.Item
+            name="password"
+            label="Password"
+            rules={[{ required: true, message: 'Please enter your password' }]}
+          >
+            <Input.Password
+              size="large"
+              placeholder="Enter your password"
+              prefix={<LockOutlined style={{ color: '#94a3b8' }} />}
+            />
+          </Form.Item>
+
+          <Form.Item style={{ marginBottom: 8 }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              block
+              loading={isLoading}
+              icon={isRegisterMode ? <UserAddOutlined /> : <LoginOutlined />}
+            >
+              {isRegisterMode ? 'Register Account in Firebase' : 'Sign In with Firebase'}
+            </Button>
+          </Form.Item>
+        </Form>
+
+        {/* Toggle */}
+        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+          <Text style={{ fontSize: 12 }}>
+            {isRegisterMode ? 'Already have an account? ' : "Don't have an account? "}
+          </Text>
+          <Link onClick={toggleMode} style={{ fontSize: 12, fontWeight: 700 }}>
+            {isRegisterMode ? 'Sign In' : 'Register / Sign Up'}
+          </Link>
         </div>
 
-        {/* Social Authentication */}
-        <div className="mt-6">
-          <div className="relative flex items-center justify-center mb-4">
-            <div className="border-t border-slate-200 w-full" />
-            <span className="bg-white px-3 text-[10px] text-slate-400 font-bold uppercase tracking-wider absolute">
-              Or continue with
-            </span>
-          </div>
+        {/* Social Auth */}
+        <Divider style={{ fontSize: 11, color: '#94a3b8' }}>Or continue with</Divider>
 
-          <div className="grid grid-cols-2 gap-3">
+        <Row gutter={12}>
+          <Col span={12}>
             <Button
-              variant="outline"
-              size="sm"
-              icon={Chrome}
+              block
+              size="middle"
+              icon={<GoogleOutlined />}
               onClick={handleGoogleLogin}
               disabled={isLoading}
             >
               Google
             </Button>
+          </Col>
+          <Col span={12}>
             <Button
-              variant="outline"
-              size="sm"
-              icon={Facebook}
+              block
+              size="middle"
               onClick={handleFacebookLogin}
               disabled={isLoading}
             >
               Facebook
             </Button>
-          </div>
-        </div>
+          </Col>
+        </Row>
 
-        <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-          <span>Strict Firebase Auth (Project: billing-project-1-c6b55)</span>
+        {/* Security Footer */}
+        <Divider style={{ marginBottom: 8 }} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <SafetyCertificateOutlined style={{ color: '#10b981', fontSize: 13 }} />
+          <Text style={{ fontSize: 11, color: '#94a3b8' }}>
+            Strict Firebase Auth (Project: billing-project-1-c6b55)
+          </Text>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
