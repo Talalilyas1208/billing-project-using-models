@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
-import { Eye, Trash2, Search, Filter, Paperclip } from 'lucide-react';
+import { Table, Input, Select, Button, Space, Typography, Tooltip } from 'antd';
+import {
+  EyeOutlined,
+  DeleteOutlined,
+  PaperClipOutlined,
+  FilterOutlined,
+} from '@ant-design/icons';
 import Badge from '../common/Badge';
+
+const { Text } = Typography;
 
 const InvoiceTable = ({ invoices = [], onViewInvoice, onDeleteInvoice, onUpdateStatus }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -15,111 +23,139 @@ const InvoiceTable = ({ invoices = [], onViewInvoice, onDeleteInvoice, onUpdateS
     return matchesSearch && matchesStatus;
   });
 
+  const columns = [
+    {
+      title: 'Invoice ID',
+      key: 'id',
+      render: (_, record) => (
+        <Space>
+          <Text strong style={{ color: '#2563eb' }}>{record.id}</Text>
+          {record.attachment && (
+            <Tooltip title={record.attachment}>
+              <PaperClipOutlined style={{ color: '#94a3b8', fontSize: 12 }} />
+            </Tooltip>
+          )}
+        </Space>
+      ),
+    },
+    {
+      title: 'Customer',
+      key: 'customer',
+      render: (_, record) => (
+        <div>
+          <Text strong style={{ fontSize: 12 }}>{record.customerName}</Text>
+          <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>{record.customerEmail}</Text>
+        </div>
+      ),
+    },
+    {
+      title: 'Issue Date',
+      dataIndex: 'issueDate',
+      key: 'issueDate',
+      render: (val) => <Text type="secondary">{val}</Text>,
+    },
+    {
+      title: 'Due Date',
+      dataIndex: 'dueDate',
+      key: 'dueDate',
+      render: (val) => <Text type="secondary">{val}</Text>,
+    },
+    {
+      title: 'Amount',
+      key: 'amount',
+      render: (_, record) => (
+        <Text strong>${Number(record.grandTotal || 0).toFixed(2)}</Text>
+      ),
+    },
+    {
+      title: 'Status',
+      key: 'status',
+      render: (_, record) => <Badge status={record.status} />,
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      align: 'right',
+      render: (_, record) => (
+        <Space size="small">
+          <Tooltip title="View Details">
+            <Button
+              type="text"
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => onViewInvoice(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Delete Invoice">
+            <Button
+              type="text"
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => onDeleteInvoice(record.id)}
+            />
+          </Tooltip>
+        </Space>
+      ),
+    },
+  ];
+
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-      {/* Table Action Bar */}
-      <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Filter by invoice ID or customer..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
-          <select
+    <div
+      style={{
+        background: '#fff',
+        borderRadius: 12,
+        border: '1px solid #e2e8f0',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Toolbar */}
+      <div
+        style={{
+          padding: '12px 16px',
+          borderBottom: '1px solid #e2e8f0',
+          background: '#f8fafc',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 8,
+        }}
+      >
+        <Input.Search
+          placeholder="Filter by invoice ID or customer..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ width: 300 }}
+          size="small"
+          allowClear
+        />
+        <Space>
+          <FilterOutlined style={{ color: '#94a3b8' }} />
+          <Select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-xs bg-white border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 font-medium cursor-pointer"
-          >
-            <option value="All">All Statuses</option>
-            <option value="Paid">Paid</option>
-            <option value="Pending">Pending</option>
-            <option value="Overdue">Overdue</option>
-          </select>
-        </div>
+            onChange={setStatusFilter}
+            size="small"
+            style={{ width: 130 }}
+            options={[
+              { value: 'All', label: 'All Statuses' },
+              { value: 'Paid', label: 'Paid' },
+              { value: 'Pending', label: 'Pending' },
+              { value: 'Overdue', label: 'Overdue' },
+            ]}
+          />
+        </Space>
       </div>
 
-      {/* Table Data */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs text-slate-600">
-          <thead className="bg-slate-100/70 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-200">
-            <tr>
-              <th className="py-3 px-4">Invoice ID</th>
-              <th className="py-3 px-4">Customer</th>
-              <th className="py-3 px-4">Issue Date</th>
-              <th className="py-3 px-4">Due Date</th>
-              <th className="py-3 px-4">Amount</th>
-              <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {filteredInvoices.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="py-8 text-center text-slate-400">
-                  No invoices found matching your criteria.
-                </td>
-              </tr>
-            ) : (
-              filteredInvoices.map((inv) => (
-                <tr key={inv.id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="py-3 px-4 font-bold text-blue-600 flex items-center gap-1.5">
-                    <span>{inv.id}</span>
-                    {inv.attachment && (
-                      <Paperclip className="w-3.5 h-3.5 text-slate-400" title={inv.attachment} />
-                    )}
-                  </td>
-                  <td className="py-3 px-4">
-                    <p className="font-semibold text-slate-800">{inv.customerName}</p>
-                    <p className="text-[10px] text-slate-400">{inv.customerEmail}</p>
-                  </td>
-                  <td className="py-3 px-4 text-slate-500">{inv.issueDate}</td>
-                  <td className="py-3 px-4 text-slate-500">{inv.dueDate}</td>
-                  <td className="py-3 px-4 font-bold text-slate-900">
-                    ${inv.grandTotal.toFixed(2)}
-                  </td>
-                  <td className="py-3 px-4">
-                    <select
-                      value={inv.status}
-                      onChange={(e) => onUpdateStatus(inv.id, e.target.value)}
-                      className="bg-transparent text-xs font-semibold cursor-pointer border-none focus:outline-none"
-                    >
-                      <option value="Paid">Paid</option>
-                      <option value="Pending">Pending</option>
-                      <option value="Overdue">Overdue</option>
-                    </select>
-                    <Badge status={inv.status} />
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => onViewInvoice(inv)}
-                        title="View Details"
-                        className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => onDeleteInvoice(inv.id)}
-                        title="Delete Invoice"
-                        className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* Table */}
+      <Table
+        dataSource={filteredInvoices}
+        columns={columns}
+        rowKey="id"
+        size="small"
+        pagination={{ pageSize: 10 }}
+        locale={{ emptyText: 'No invoices found matching your criteria.' }}
+      />
     </div>
   );
 };

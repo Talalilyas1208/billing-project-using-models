@@ -1,25 +1,27 @@
-import { useState } from "react";
-import { Row, Col, Form, DatePicker, Select } from "antd";
-import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import dayjs from "dayjs";
-import Modals from "../components/Modal";
-import CardComponent from "../components/CardComponent";
-import Config from "../components/Config";
-import NewCustomers from "../components/NewCustomers/NewCustomers";
-import Invoicecol from "../components/ui/Invoicecol";
-import useConfirmNavigation from "../hooks/useConfirmNavigation";
-import InvoiceHeader from "../components/NewInvoice/InvoiceHeader";
-import CustomerSelect from "../components/NewCustomers/CustomerSelect";
-import InvoiceItemsTable from "../components/NewInvoice/InvoiceItemsTable";
+import React, { useState } from 'react';
+import { Row, Col, Form, DatePicker, Select, Typography, Spin } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import dayjs from 'dayjs';
+import Modals from '../components/Modal';
+import CardComponent from '../components/CardComponent';
+import Config from '../components/Config';
+import NewCustomers from '../components/NewCustomers/NewCustomers';
+import Invoicecol from '../components/ui/Invoicecol';
+import useConfirmNavigation from '../hooks/useConfirmNavigation';
+import InvoiceHeader from '../components/NewInvoice/InvoiceHeader';
+import CustomerSelect from '../components/NewCustomers/CustomerSelect';
+import InvoiceItemsTable from '../components/NewInvoice/InvoiceItemsTable';
 import {
   useGetPaymentDeadlinesQuery,
   useGetVatQuery,
   useGetCurrenciesQuery,
   api,
-} from "../redux/api/api";
-import { useGetCustomersQuery } from "../redux/api/blackListApi";
-import Payementdeadline from "../components/NewInvoice/Paymentdeadline";
+} from '../redux/api/api';
+import { useGetCustomersQuery } from '../redux/api/blackListApi';
+import Payementdeadline from '../components/NewInvoice/Paymentdeadline';
+
+const { Text } = Typography;
 
 export default function Newinvoice() {
   const dispatch = useDispatch();
@@ -27,15 +29,15 @@ export default function Newinvoice() {
   const [customerOpen, setCustomerOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [statetouch, settouch] = useState(false);
-  const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState('');
 
   const [items, setItems] = useState([
     {
       id: 1,
-      product: "",
-      description: "",
+      product: '',
+      description: '',
       number: 1,
-      unitPrice: "",
+      unitPrice: '',
     },
   ]);
 
@@ -71,12 +73,11 @@ export default function Newinvoice() {
   const { data: currencyData, isLoading: currencyLoading } = useGetCurrenciesQuery();
 
   const fallbackPaymentDeadlines = [
-    { value: "7", label: "7 days" },
-    { value: "14", label: "14 days" },
-    { value: "30", label: "30 days" },
+    { value: '7', label: '7 days' },
+    { value: '14', label: '14 days' },
+    { value: '30', label: '30 days' },
   ];
 
-  // Dynamic customer list from API (no static fallback so empty state prompts customer creation)
   const customerList =
     Array.isArray(Customer?.data) && Customer.data.length > 0
       ? Customer.data
@@ -107,20 +108,19 @@ export default function Newinvoice() {
 
   const vatOptions = vatList.map((item, idx) => ({
     value: String(item.key || item.code || item.id || idx),
-    label: item.code || item.label || item.description || "VAT Option",
+    label: item.code || item.label || item.description || 'VAT Option',
   }));
 
   const currencyOptions = currencyList.map((c) => ({
     value: c.code,
-    label: `${c.symbol ? c.symbol + " " : ""}${c.code} - ${c.name || c.country || ""}`,
+    label: `${c.symbol ? c.symbol + ' ' : ''}${c.code} - ${c.name || c.country || ''}`,
   }));
 
   const confirmNavigation = useConfirmNavigation(statetouch);
 
-  // Function to invalidate the tag and force a network pull
   const purgeAndPullDeadlines = () => {
     dispatch(
-      api.util.invalidateTags([{ type: "PaymentDeadline", id: "LIST" }])
+      api.util.invalidateTags([{ type: 'PaymentDeadline', id: 'LIST' }])
     );
   };
 
@@ -133,11 +133,11 @@ export default function Newinvoice() {
   const handleclose = () => {
     setIsOpen(false);
     settouch(false);
-    purgeAndPullDeadlines(); // Wipes old local cache data and pulls a new dataset
+    purgeAndPullDeadlines();
   };
 
   const handleBack = () => {
-    navigate("/dashboard/invoices");
+    navigate('/dashboard/invoices');
   };
 
   const handleAddItem = () => {
@@ -145,10 +145,10 @@ export default function Newinvoice() {
       ...prev,
       {
         id: prev.length ? Math.max(...prev.map((i) => i.id)) + 1 : 1,
-        product: "",
-        description: "",
+        product: '',
+        description: '',
         number: 1,
-        unitPrice: "",
+        unitPrice: '',
       },
     ]);
   };
@@ -166,15 +166,9 @@ export default function Newinvoice() {
   const moveItem = (index, direction) => {
     setItems((prev) => {
       const target = index + direction;
-
-      if (target < 0 || target >= prev.length) {
-        return prev;
-      }
-
+      if (target < 0 || target >= prev.length) return prev;
       const updated = [...prev];
-
       [updated[index], updated[target]] = [updated[target], updated[index]];
-
       return updated;
     });
   };
@@ -189,11 +183,11 @@ export default function Newinvoice() {
         onCancel={() => confirmNavigation(handleclose)}
         destroyOnHidden
         rest={{
-          okText: "Done",
+          okText: 'Done',
           style: {
             width: 900,
             top: 170,
-            title: "Create New Customer",
+            title: 'Create New Customer',
           },
         }}
       >
@@ -209,15 +203,15 @@ export default function Newinvoice() {
         <Col span={24}>
           <CardComponent
             style={{
-              width: "100%",
-              borderRadius: "10px",
-              borderColor: "#b9adadff",
+              width: '100%',
+              borderRadius: '10px',
+              borderColor: '#b9adadff',
             }}
           >
             <Row gutter={[24, 16]} justify="space-between">
               <Col xs={24} sm={12} md={10} lg={8}>
                 <Row gutter={[0, 16]}>
-                  {/* Dynamic Customer Select (Shows Customers if available; else shows Create Customer button) */}
+                  {/* Customer Select */}
                   <Col span={20}>
                     <CustomerSelect
                       open={customerOpen}
@@ -228,10 +222,10 @@ export default function Newinvoice() {
                     />
                   </Col>
 
-                  {/* VAT Dropdown from /api/vat */}
+                  {/* VAT Dropdown */}
                   <Col span={20}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                      <label style={{ fontSize: "12px", fontWeight: 600, color: "#475569" }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>
                         VAT Rate
                       </label>
                       <Select
@@ -240,15 +234,15 @@ export default function Newinvoice() {
                         loading={vatLoading}
                         options={vatOptions}
                         defaultValue={vatOptions[0]?.value}
-                        style={{ width: "100%" }}
+                        style={{ width: '100%' }}
                       />
                     </div>
                   </Col>
 
-                  {/* Currency Dropdown from /api/currency */}
+                  {/* Currency Dropdown */}
                   <Col span={20}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                      <label style={{ fontSize: "12px", fontWeight: 600, color: "#475569" }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>
                         Billing Currency
                       </label>
                       <Select
@@ -257,7 +251,7 @@ export default function Newinvoice() {
                         loading={currencyLoading}
                         options={currencyOptions}
                         defaultValue="USD"
-                        style={{ width: "100%" }}
+                        style={{ width: '100%' }}
                       />
                     </div>
                   </Col>
@@ -267,29 +261,28 @@ export default function Newinvoice() {
               <Col xs={24} sm={12} md={10} lg={8}>
                 <Row gutter={[0, 16]}>
                   <Col span={20}>
-                    <label style={{ fontSize: "12px", fontWeight: 600, color: "#475569", display: "block", marginBottom: "4px" }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 4 }}>
                       Invoice Date
                     </label>
                     <DatePicker
                       onChange={onChange}
-                      format={{
-                        format: "YYYY-MM-DD ",
-                        type: "mask",
-                      }}
+                      format={{ format: 'YYYY-MM-DD', type: 'mask' }}
                       size="large"
                       defaultValue={dayjs()}
-                      style={{ width: "100%" }}
+                      style={{ width: '100%' }}
                     />
                   </Col>
                 </Row>
 
                 <Row gutter={[0, 16]}>
                   {isFetching && (
-                    <p className="text-xs text-blue-600 animate-pulse">
-                      Updating data in background...
-                    </p>
+                    <Col span={20}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#2563eb', fontSize: 12 }}>
+                        <Spin size="small" />
+                        <Text style={{ color: '#2563eb', fontSize: 12 }}>Updating data in background...</Text>
+                      </div>
+                    </Col>
                   )}
-                  {/* Payment Deadline Dropdown from /api/paymentdeadline */}
                   <Col span={20}>
                     <Payementdeadline
                       open={paymentOpen}
