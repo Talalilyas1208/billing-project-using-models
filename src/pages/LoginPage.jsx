@@ -216,7 +216,7 @@ const LoginPage = ({ onAuthenticate }) => {
               label={<Text style={{ fontSize: 12, fontWeight: 600 }}>Full Name / Display Name</Text>}
               rules={[{ required: true, message: 'Please enter your name' }]}
             >
-              <Input placeholder="John Doe" />
+              <Input />
             </Form.Item>
           )}
 
@@ -228,7 +228,7 @@ const LoginPage = ({ onAuthenticate }) => {
               { type: 'email', message: 'Please enter a valid email address' },
             ]}
           >
-            <Input prefix={<MailOutlined style={{ color: '#94a3b8' }} />} placeholder="user@billy.dk" />
+            <Input prefix={<MailOutlined style={{ color: '#94a3b8' }} />} />
           </Form.Item>
 
           <Form.Item
@@ -239,7 +239,7 @@ const LoginPage = ({ onAuthenticate }) => {
               { min: 6, message: 'Password must be at least 6 characters' },
             ]}
           >
-            <Input.Password prefix={<LockOutlined style={{ color: '#94a3b8' }} />} placeholder="••••••••" />
+            <Input.Password prefix={<LockOutlined style={{ color: '#94a3b8' }} />} />
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 12 }}>
