@@ -1,19 +1,28 @@
 import React from 'react';
+import { Layout } from 'antd';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
 
+const { Content } = Layout;
+
 const DashboardLayout = ({ userSession, onLogout }) => {
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <Layout style={{ minHeight: '100vh' }}>
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
+      <Layout>
         <Header userSession={userSession} onLogout={onLogout} />
-        <main className="flex-1 p-8 overflow-y-auto">
+        <Content
+          style={{
+            padding: 32,
+            overflowY: 'auto',
+            background: '#f8fafc',
+          }}
+        >
           <Outlet />
-        </main>
-      </div>
-    </div>
+        </Content>
+      </Layout>
+    </Layout>
   );
 };
 
