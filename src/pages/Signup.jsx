@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Lock, UserPlus } from 'lucide-react';
-import Input from '../components/common/Input';
-import Button from '../components/common/Button';
+import { Card, Form, Input, Button, Alert, Typography } from 'antd';
+import {
+  UserOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  LockOutlined,
+  UserAddOutlined,
+} from '@ant-design/icons';
 import { validateSignupForm } from '../utils/validation';
 import { registerWithEmail } from '../firebase/config';
 import {
@@ -13,39 +18,38 @@ import {
   clearAuthError,
 } from '../redux/slices/authSlice';
 
+const { Title, Text } = Typography;
+
 const Signup = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isLoading, error } = useSelector((state) => state.auth);
+  const [form] = Form.useForm();
 
-  const [displayName, setDisplayName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [formErrors, setFormErrors] = useState({});
-
-  const handleSignup = async (e) => {
-    e.preventDefault();
+  const handleSignup = async (values) => {
     dispatch(clearAuthError());
 
     // 1. Client-Side Validation Layer
     const { isValid, errors } = validateSignupForm({
-      email,
-      password,
-      displayName,
-      phone,
+      email: values.email,
+      password: values.password,
+      displayName: values.displayName,
+      phone: values.phone,
     });
 
     if (!isValid) {
-      setFormErrors(errors);
+      const fieldErrors = Object.entries(errors).map(([name, err]) => ({
+        name,
+        errors: [err],
+      }));
+      form.setFields(fieldErrors);
       return;
     }
-    setFormErrors({});
 
     // 2. Dispatch Auth & Firebase Register
     dispatch(setAuthLoading(true));
     try {
-      const user = await registerWithEmail(email, password, displayName, phone);
+      const user = await registerWithEmail(values.email, values.password, values.displayName, values.phone);
       dispatch(loginSuccess(user));
       navigate('/dashboard/invoices');
     } catch (err) {
@@ -54,81 +58,135 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md p-8 animate-modal">
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#0f172a',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+      }}
+    >
+      <Card
+        style={{
+          width: '100%',
+          maxWidth: 440,
+          borderRadius: 16,
+          boxShadow: '0 25px 50px rgba(0,0,0,0.4)',
+          border: '1px solid #e2e8f0',
+        }}
+        styles={{ body: { padding: 32 } }}
+      >
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 text-white font-bold text-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              background: '#2563eb',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 22,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 12px',
+              boxShadow: '0 4px 12px rgba(37,99,235,0.4)',
+            }}
+          >
             B
           </div>
-          <h1 className="text-xl font-extrabold text-slate-900">Create Billy.dk Account</h1>
-          <p className="text-xs text-slate-500 mt-1">Start issuing invoices in seconds</p>
+          <Title level={4} style={{ margin: 0 }}>
+            Create Billy.dk Account
+          </Title>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            Start issuing invoices in seconds
+          </Text>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium">
-            {error}
-          </div>
+          <Alert message={error} type="error" showIcon style={{ marginBottom: 16, borderRadius: 8 }} />
         )}
 
         {/* Form */}
-        <form onSubmit={handleSignup} className="space-y-4">
-          <Input
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSignup}
+          requiredMark={false}
+        >
+          <Form.Item
             label="Full Name / Display Name"
-            placeholder="John Doe"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            error={formErrors.displayName}
-            icon={User}
-            required
-          />
+            name="displayName"
+            rules={[{ required: true, message: 'Please enter your name' }]}
+          >
+            <Input
+              size="large"
+              placeholder="John Doe"
+              prefix={<UserOutlined style={{ color: '#94a3b8' }} />}
+            />
+          </Form.Item>
 
-          <Input
+          <Form.Item
             label="Email Address"
-            type="email"
-            placeholder="john@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={formErrors.email}
-            icon={Mail}
-            required
-          />
+            name="email"
+            rules={[{ required: true, type: 'email', message: 'Please enter a valid email' }]}
+          >
+            <Input
+              size="large"
+              placeholder="john@example.com"
+              prefix={<MailOutlined style={{ color: '#94a3b8' }} />}
+            />
+          </Form.Item>
 
-          <Input
+          <Form.Item
             label="Phone Number"
-            type="tel"
-            placeholder="+45 12 34 56 78"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            error={formErrors.phone}
-            icon={Phone}
-            required
-          />
+            name="phone"
+            rules={[{ required: true, message: 'Please enter phone number' }]}
+          >
+            <Input
+              size="large"
+              placeholder="+45 12 34 56 78"
+              prefix={<PhoneOutlined style={{ color: '#94a3b8' }} />}
+            />
+          </Form.Item>
 
-          <Input
+          <Form.Item
             label="Password"
-            type="password"
-            placeholder="At least 6 characters"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            error={formErrors.password}
-            icon={Lock}
-            required
-          />
+            name="password"
+            rules={[{ required: true, message: 'Please enter a password' }]}
+          >
+            <Input.Password
+              size="large"
+              placeholder="At least 6 characters"
+              prefix={<LockOutlined style={{ color: '#94a3b8' }} />}
+            />
+          </Form.Item>
 
-          <Button type="submit" variant="primary" className="w-full" isLoading={isLoading} icon={UserPlus}>
-            Create Account
-          </Button>
-        </form>
+          <Form.Item style={{ marginBottom: 16 }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              block
+              loading={isLoading}
+              icon={<UserAddOutlined />}
+            >
+              Create Account
+            </Button>
+          </Form.Item>
+        </Form>
 
         {/* Footer Link to Login */}
-        <div className="mt-6 text-center text-xs text-slate-500">
-          Already have an account?{' '}
-          <Link to="/login" className="font-bold text-blue-600 hover:text-blue-700">
+        <div style={{ textAlign: 'center', fontSize: 12 }}>
+          <Text type="secondary">Already have an account? </Text>
+          <Link to="/login" style={{ fontWeight: 700, color: '#2563eb' }}>
             Sign in
           </Link>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
