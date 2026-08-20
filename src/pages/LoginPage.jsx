@@ -8,7 +8,6 @@ import {
   Typography,
   Alert,
   Divider,
-  Space,
   Row,
   Col,
 } from 'antd';
@@ -40,7 +39,7 @@ const LoginPage = ({ onAuthenticate }) => {
   const [isLoading, setIsLoading]  = useState(false);
 
   useEffect(() => {
-    localStorage.removeItem('direct_user_session');
+    sessionStorage.removeItem('direct_user_session');
   }, []);
 
   const handleSubmit = async (values) => {
@@ -58,7 +57,7 @@ const LoginPage = ({ onAuthenticate }) => {
           photoURL: user.photoURL || null,
           authenticatedAt: new Date().toISOString(),
         };
-        localStorage.setItem('direct_user_session', JSON.stringify(userSession));
+        sessionStorage.setItem('direct_user_session', JSON.stringify(userSession));
         onAuthenticate(userSession);
         navigate('/dashboard/invoices', { replace: true });
       } else {
@@ -70,13 +69,13 @@ const LoginPage = ({ onAuthenticate }) => {
           photoURL: user.photoURL || null,
           authenticatedAt: new Date().toISOString(),
         };
-        localStorage.setItem('direct_user_session', JSON.stringify(userSession));
+        sessionStorage.setItem('direct_user_session', JSON.stringify(userSession));
         onAuthenticate(userSession);
         navigate('/dashboard/invoices', { replace: true });
       }
     } catch (err) {
       console.error('Firebase Auth error:', err);
-      localStorage.removeItem('direct_user_session');
+      sessionStorage.removeItem('direct_user_session');
       setError(formatFirebaseError(err));
     } finally {
       setIsLoading(false);
@@ -95,11 +94,11 @@ const LoginPage = ({ onAuthenticate }) => {
         photoURL: user.photoURL || null,
         authenticatedAt: new Date().toISOString(),
       };
-      localStorage.setItem('direct_user_session', JSON.stringify(userSession));
+      sessionStorage.setItem('direct_user_session', JSON.stringify(userSession));
       onAuthenticate(userSession);
       navigate('/dashboard/invoices', { replace: true });
     } catch (err) {
-      localStorage.removeItem('direct_user_session');
+      sessionStorage.removeItem('direct_user_session');
       setError(formatFirebaseError(err));
     } finally {
       setIsLoading(false);
@@ -118,11 +117,11 @@ const LoginPage = ({ onAuthenticate }) => {
         photoURL: user.photoURL || null,
         authenticatedAt: new Date().toISOString(),
       };
-      localStorage.setItem('direct_user_session', JSON.stringify(userSession));
+      sessionStorage.setItem('direct_user_session', JSON.stringify(userSession));
       onAuthenticate(userSession);
       navigate('/dashboard/invoices', { replace: true });
     } catch (err) {
-      localStorage.removeItem('direct_user_session');
+      sessionStorage.removeItem('direct_user_session');
       setError(formatFirebaseError(err));
     } finally {
       setIsLoading(false);
@@ -156,7 +155,7 @@ const LoginPage = ({ onAuthenticate }) => {
         }}
         styles={{ body: { padding: 32 } }}
       >
-        {/* Brand */}
+        {/* Brand Header */}
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <div
             style={{
@@ -165,8 +164,8 @@ const LoginPage = ({ onAuthenticate }) => {
               borderRadius: 12,
               background: '#2563eb',
               color: '#fff',
-              fontWeight: 700,
-              fontSize: 22,
+              fontWeight: 800,
+              fontSize: 24,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -176,7 +175,7 @@ const LoginPage = ({ onAuthenticate }) => {
           >
             B
           </div>
-          <Title level={4} style={{ margin: 0 }}>
+          <Title level={4} style={{ margin: 0, fontWeight: 800, color: '#0f172a' }}>
             {isRegisterMode ? 'Create Billy.dk Account' : 'Sign in to Billy.dk'}
           </Title>
           <Text type="secondary" style={{ fontSize: 12 }}>
@@ -186,85 +185,105 @@ const LoginPage = ({ onAuthenticate }) => {
           </Text>
         </div>
 
-        {/* Error / Success */}
         {error && (
-          <Alert message={error} type="error" showIcon style={{ marginBottom: 16, borderRadius: 8 }} />
-        )}
-        {successMsg && (
-          <Alert message={successMsg} type="success" showIcon style={{ marginBottom: 16, borderRadius: 8 }} />
+          <Alert
+            message={error}
+            type="error"
+            showIcon
+            style={{ marginBottom: 16, borderRadius: 8, fontSize: 12 }}
+          />
         )}
 
-        {/* Form */}
-        <Form form={form} layout="vertical" onFinish={handleSubmit} requiredMark={false}>
+        {successMsg && (
+          <Alert
+            message={successMsg}
+            type="success"
+            showIcon
+            style={{ marginBottom: 16, borderRadius: 8, fontSize: 12 }}
+          />
+        )}
+
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          requiredMark={false}
+          size="large"
+        >
           {isRegisterMode && (
             <Form.Item
               name="displayName"
-              label="Full Name / Display Name"
+              label={<Text style={{ fontSize: 12, fontWeight: 600 }}>Full Name / Display Name</Text>}
               rules={[{ required: true, message: 'Please enter your name' }]}
             >
-              <Input size="large" placeholder="John Doe" />
+              <Input placeholder="John Doe" />
             </Form.Item>
           )}
 
           <Form.Item
             name="email"
-            label="Email Address"
-            rules={[{ required: true, type: 'email', message: 'Please enter a valid email' }]}
+            label={<Text style={{ fontSize: 12, fontWeight: 600 }}>Email Address</Text>}
+            rules={[
+              { required: true, message: 'Please enter your email' },
+              { type: 'email', message: 'Please enter a valid email address' },
+            ]}
           >
-            <Input
-              size="large"
-              placeholder="user@billy.dk"
-              prefix={<MailOutlined style={{ color: '#94a3b8' }} />}
-            />
+            <Input prefix={<MailOutlined style={{ color: '#94a3b8' }} />} placeholder="user@billy.dk" />
           </Form.Item>
 
           <Form.Item
             name="password"
-            label="Password"
-            rules={[{ required: true, message: 'Please enter your password' }]}
+            label={<Text style={{ fontSize: 12, fontWeight: 600 }}>Password</Text>}
+            rules={[
+              { required: true, message: 'Please enter your password' },
+              { min: 6, message: 'Password must be at least 6 characters' },
+            ]}
           >
-            <Input.Password
-              size="large"
-              placeholder="Enter your password"
-              prefix={<LockOutlined style={{ color: '#94a3b8' }} />}
-            />
+            <Input.Password prefix={<LockOutlined style={{ color: '#94a3b8' }} />} placeholder="••••••••" />
           </Form.Item>
 
-          <Form.Item style={{ marginBottom: 8 }}>
+          <Form.Item style={{ marginBottom: 12 }}>
             <Button
               type="primary"
               htmlType="submit"
-              size="large"
               block
               loading={isLoading}
               icon={isRegisterMode ? <UserAddOutlined /> : <LoginOutlined />}
+              style={{
+                height: 44,
+                borderRadius: 8,
+                fontWeight: 700,
+                background: '#2563eb',
+              }}
             >
               {isRegisterMode ? 'Register Account in Firebase' : 'Sign In with Firebase'}
             </Button>
           </Form.Item>
         </Form>
 
-        {/* Toggle */}
-        <div style={{ textAlign: 'center', marginBottom: 16 }}>
-          <Text style={{ fontSize: 12 }}>
+        {/* Toggle Mode */}
+        <div style={{ textAlign: 'center', marginTop: 12, fontSize: 12 }}>
+          <Text type="secondary">
             {isRegisterMode ? 'Already have an account? ' : "Don't have an account? "}
           </Text>
-          <Link onClick={toggleMode} style={{ fontSize: 12, fontWeight: 700 }}>
+          <Link onClick={toggleMode} style={{ fontWeight: 700, color: '#2563eb' }}>
             {isRegisterMode ? 'Sign In' : 'Register / Sign Up'}
           </Link>
         </div>
 
-        {/* Social Auth */}
-        <Divider style={{ fontSize: 11, color: '#94a3b8' }}>Or continue with</Divider>
+        {/* Social Authentication */}
+        <Divider style={{ margin: '20px 0 16px', fontSize: 11, color: '#94a3b8' }}>
+          Or continue with
+        </Divider>
 
         <Row gutter={12}>
           <Col span={12}>
             <Button
               block
-              size="middle"
-              icon={<GoogleOutlined />}
               onClick={handleGoogleLogin}
               disabled={isLoading}
+              icon={<GoogleOutlined />}
+              style={{ borderRadius: 8, fontSize: 12 }}
             >
               Google
             </Button>
@@ -272,21 +291,19 @@ const LoginPage = ({ onAuthenticate }) => {
           <Col span={12}>
             <Button
               block
-              size="middle"
               onClick={handleFacebookLogin}
               disabled={isLoading}
+              style={{ borderRadius: 8, fontSize: 12 }}
             >
               Facebook
             </Button>
           </Col>
         </Row>
 
-        {/* Security Footer */}
-        <Divider style={{ marginBottom: 8 }} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-          <SafetyCertificateOutlined style={{ color: '#10b981', fontSize: 13 }} />
-          <Text style={{ fontSize: 11, color: '#94a3b8' }}>
-            Strict Firebase Auth (Project: billing-project-1-c6b55)
+        <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
+          <Text type="secondary" style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <SafetyCertificateOutlined style={{ color: '#10b981' }} />
+            <span>Strict Firebase Auth (Session Storage)</span>
           </Text>
         </div>
       </Card>

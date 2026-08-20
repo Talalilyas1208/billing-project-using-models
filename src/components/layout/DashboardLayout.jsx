@@ -6,7 +6,7 @@ import Sidebar from './Sidebar';
 
 const { Content } = Layout;
 
-const DashboardLayout = ({ userSession, onLogout }) => {
+const DashboardLayout = React.memo(({ userSession, onLogout }) => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sidebar />
@@ -24,6 +24,8 @@ const DashboardLayout = ({ userSession, onLogout }) => {
       </Layout>
     </Layout>
   );
-};
+});
+
+DashboardLayout.displayName = 'DashboardLayout';
 
 export default DashboardLayout;

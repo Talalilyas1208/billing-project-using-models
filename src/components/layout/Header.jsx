@@ -9,7 +9,7 @@ import {
 const { Header: AntHeader } = Layout;
 const { Text } = Typography;
 
-const Header = ({ userSession, onLogout }) => {
+const Header = React.memo(({ userSession, onLogout }) => {
   const initials = userSession?.name
     ? userSession.name.charAt(0).toUpperCase()
     : 'U';
@@ -85,6 +85,8 @@ const Header = ({ userSession, onLogout }) => {
       </Space>
     </AntHeader>
   );
-};
+});
+
+Header.displayName = 'Header';
 
 export default Header;

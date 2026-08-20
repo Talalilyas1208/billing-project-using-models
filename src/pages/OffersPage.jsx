@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Table, Button, Typography, Tag } from 'antd';
 import { FileDoneOutlined, PlusOutlined } from '@ant-design/icons';
 import { useGetProductsQuery } from '../redux/api/blackListApi';
@@ -9,15 +9,19 @@ const OffersPage = () => {
   const { data: response = {}, isLoading } = useGetProductsQuery({ page: 1, limit: 10 });
   const products = Array.isArray(response) ? response : response.data || [];
 
-  const offers = products.map((p, index) => ({
-    id: `OFF-2026-10${index + 1}`,
-    customer: p.supplier !== '12' ? p.supplier : 'Acme Corporation',
-    title: p.description !== '12' ? p.description : 'Enterprise Solution Package',
-    total: Number(p.price || 0) * 1.5,
-    validUntil: '2026-09-15',
-    status: index % 2 === 0 ? 'Accepted' : 'Sent',
-    currency: p.currency || 'USD',
-  }));
+  const offers = useMemo(
+    () =>
+      products.map((p, index) => ({
+        id: `OFF-2026-10${index + 1}`,
+        customer: p.supplier !== '12' ? p.supplier : 'Acme Corporation',
+        title: p.description !== '12' ? p.description : 'Enterprise Solution Package',
+        total: Number(p.price || 0) * 1.5,
+        validUntil: '2026-09-15',
+        status: index % 2 === 0 ? 'Accepted' : 'Sent',
+        currency: p.currency || 'USD',
+      })),
+    [products]
+  );
 
   const columns = [
     {

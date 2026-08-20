@@ -44,7 +44,7 @@ const statConfig = [
 
 const getTotal = (inv) => Number(inv.amount ?? inv.grandTotal ?? 0) || 0;
 
-const InvoiceStats = ({ invoices = [] }) => {
+const InvoiceStats = React.memo(({ invoices = [] }) => {
   return (
     <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
       {statConfig.map((cfg) => {
@@ -104,6 +104,8 @@ const InvoiceStats = ({ invoices = [] }) => {
       })}
     </Row>
   );
-};
+});
+
+InvoiceStats.displayName = 'InvoiceStats';
 
 export default InvoiceStats;

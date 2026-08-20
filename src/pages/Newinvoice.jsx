@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   Form,
   Input,
@@ -30,7 +30,6 @@ import {
   useGetCurrenciesQuery,
   useGetPaymentDeadlinesQuery,
   useGetVatQuery,
-  useGetPriceModeOptionsQuery,
   useGetapprovebuttonQuery,
   useGetFieldTypeOptionsQuery,
   useAddInvoiceMutation,
@@ -64,9 +63,6 @@ export default function Newinvoice() {
     isLoading: productsLoading,
     refetch: refetchProducts,
   } = useGetProductsQuery({ page: 1, limit: 100 });
-
-  // priceOptions data is fetched by BillyInvoiceModal but unused there too; kept for parity
-  useGetPriceModeOptionsQuery();
 
   const customersList = Array.isArray(customersResponse?.data)
     ? customersResponse.data
@@ -110,19 +106,21 @@ export default function Newinvoice() {
   const [attachment, setAttachment] = useState(null);
   const [submitError, setSubmitError] = useState('');
 
-  const handleAddItem = () => {
+  const handleAddItem = useCallback(() => {
     setItems((prev) => [
       ...prev,
       { id: Date.now(), description: '', quantity: 1, unitPrice: 0, taxRate: 25 },
     ]);
-  };
+  }, []);
 
-  const handleRemoveItem = (id) => {
-    if (items.length === 1) return;
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  };
+  const handleRemoveItem = useCallback((id) => {
+    setItems((prev) => {
+      if (prev.length === 1) return prev;
+      return prev.filter((item) => item.id !== id);
+    });
+  }, []);
 
-  const handleItemChange = (id, field, value) => {
+  const handleItemChange = useCallback((id, field, value) => {
     setItems((prev) =>
       prev.map((item) => {
         if (item.id === id) {
@@ -132,29 +130,31 @@ export default function Newinvoice() {
         return item;
       })
     );
-  };
+  }, []);
 
-  const subtotal = items.reduce((s, i) => s + (i.quantity || 0) * (i.unitPrice || 0), 0);
-  const taxTotal = items.reduce((s, i) => s + (i.quantity || 0) * (i.unitPrice || 0) * ((i.taxRate || 0) / 100), 0);
-  const grandTotal = subtotal + taxTotal;
+  const { subtotal, taxTotal, grandTotal } = useMemo(() => {
+    const sub = items.reduce((s, i) => s + (i.quantity || 0) * (i.unitPrice || 0), 0);
+    const tax = items.reduce((s, i) => s + (i.quantity || 0) * (i.unitPrice || 0) * ((i.taxRate || 0) / 100), 0);
+    return { subtotal: sub, taxTotal: tax, grandTotal: sub + tax };
+  }, [items]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     navigate('/dashboard/invoices');
-  };
+  }, [navigate]);
 
-  const handleOpenCreateCustomer = () => setIsOpen(true);
-  const handleCloseCreateCustomer = () => {
+  const handleOpenCreateCustomer = useCallback(() => setIsOpen(true), []);
+  const handleCloseCreateCustomer = useCallback(() => {
     setIsOpen(false);
     if (refetchCustomers) refetchCustomers();
-  };
+  }, [refetchCustomers]);
 
-  const handleOpenCreateProduct = () => setIsProductModalOpen(true);
-  const handleCloseCreateProduct = () => {
+  const handleOpenCreateProduct = useCallback(() => setIsProductModalOpen(true), []);
+  const handleCloseCreateProduct = useCallback(() => {
     setIsProductModalOpen(false);
     if (refetchProducts) refetchProducts();
-  };
+  }, [refetchProducts]);
 
-  const handleProductSelect = (id, productId) => {
+  const handleProductSelect = useCallback((id, productId) => {
     const product = productsList.find((p) => String(p.id) === String(productId));
     if (!product) return;
     setItems((prev) =>
@@ -169,7 +169,7 @@ export default function Newinvoice() {
           : item
       )
     );
-  };
+  }, [productsList]);
 
   const handleFormSubmit = async (actionLabel = 'Approve & Save') => {
     setSubmitError('');
@@ -313,30 +313,50 @@ export default function Newinvoice() {
     },
   ];
 
-  const currencyOptions = currencyList.map((c) => ({
-    value: c.code,
-    label: `${c.symbol ? c.symbol + ' ' : ''}${c.name || c.code} (${c.code})`,
-  }));
+  const currencyOptions = useMemo(
+    () =>
+      currencyList.map((c) => ({
+        value: c.code,
+        label: `${c.symbol ? c.symbol + ' ' : ''}${c.name || c.code} (${c.code})`,
+      })),
+    [currencyList]
+  );
 
-  const deadlineOptions = deadlineList.map((pd, idx) => ({
-    value: String(pd.days !== undefined ? pd.days : pd.value || pd.id || idx),
-    label: pd.label || `${pd.days || 0} days after`,
-  }));
+  const deadlineOptions = useMemo(
+    () =>
+      deadlineList.map((pd, idx) => ({
+        value: String(pd.days !== undefined ? pd.days : pd.value || pd.id || idx),
+        label: pd.label || `${pd.days || 0} days after`,
+      })),
+    [deadlineList]
+  );
 
-  const vatOptions = vatList.map((v, idx) => ({
-    value: String(v.key || v.code || v.id || idx),
-    label: `${v.code || v.label || 'VAT Option'}${v.description ? ` (${v.description})` : ''}`,
-  }));
+  const vatOptions = useMemo(
+    () =>
+      vatList.map((v, idx) => ({
+        value: String(v.key || v.code || v.id || idx),
+        label: `${v.code || v.label || 'VAT Option'}${v.description ? ` (${v.description})` : ''}`,
+      })),
+    [vatList]
+  );
 
-  const customerOptions = customersList.map((c) => ({
-    value: c.name || c.Company_name,
-    label: `${c.Company_name || c.name} (${c.email || 'N/A'})`,
-  }));
+  const customerOptions = useMemo(
+    () =>
+      customersList.map((c) => ({
+        value: c.name || c.Company_name,
+        label: `${c.Company_name || c.name} (${c.email || 'N/A'})`,
+      })),
+    [customersList]
+  );
 
-  const productOptions = productsList.map((p) => ({
-    value: p.id,
-    label: `${p.productname || p.name} - $${Number(p.price || 0).toFixed(2)}`,
-  }));
+  const productOptions = useMemo(
+    () =>
+      productsList.map((p) => ({
+        value: p.id,
+        label: `${p.productname || p.name} - $${Number(p.price || 0).toFixed(2)}`,
+      })),
+    [productsList]
+  );
 
   return (
     <Config>
