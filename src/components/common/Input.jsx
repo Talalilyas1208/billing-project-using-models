@@ -1,4 +1,6 @@
 import React from 'react';
+import { Input as AntInput, Form } from 'antd';
+
 
 const Input = ({
   label,
@@ -13,36 +15,54 @@ const Input = ({
   className = '',
   ...props
 }) => {
+  const prefix = Icon ? <Icon style={{ width: 14, height: 14, color: '#94a3b8' }} /> : undefined;
+
+  const inputEl =
+    type === 'password' ? (
+      <AntInput.Password
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        prefix={prefix}
+        status={error ? 'error' : undefined}
+        className={className}
+        {...props}
+      />
+    ) : (
+      <AntInput
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        prefix={prefix}
+        status={error ? 'error' : undefined}
+        className={className}
+        {...props}
+      />
+    );
+
   return (
-    <div className="w-full space-y-1.5">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
       {label && (
-        <label className="block text-xs font-semibold text-slate-700 tracking-wide uppercase">
-          {label} {required && <span className="text-red-500">*</span>}
+        <label
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: '#475569',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}
+        >
+          {label}
+          {required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
         </label>
       )}
-      <div className="relative rounded-lg shadow-sm">
-        {Icon && (
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-            <Icon className="w-4 h-4" />
-          </div>
-        )}
-        <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          className={`block w-full text-sm rounded-lg border transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-            Icon ? 'pl-9' : 'pl-3'
-          } pr-3 py-2 ${
-            error
-              ? 'border-red-400 bg-red-50/50 text-red-900 placeholder-red-300'
-              : 'border-slate-200 bg-white text-slate-900 placeholder-slate-400 hover:border-slate-300'
-          } ${className}`}
-          {...props}
-        />
-      </div>
-      {error && <p className="text-xs text-red-500 font-medium pl-0.5">{error}</p>}
+      {inputEl}
+      {error && (
+        <span style={{ fontSize: 11, color: '#ef4444', fontWeight: 500 }}>{error}</span>
+      )}
     </div>
   );
 };

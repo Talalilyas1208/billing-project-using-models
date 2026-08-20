@@ -1,130 +1,209 @@
 import React from 'react';
-import { X, Printer, Download, Paperclip } from 'lucide-react';
+import {
+  Modal,
+  Descriptions,
+  Table,
+  Typography,
+  Button,
+  Space,
+  Divider,
+} from 'antd';
+import {
+  PrinterOutlined,
+  DownloadOutlined,
+  PaperClipOutlined,
+} from '@ant-design/icons';
 import Badge from '../common/Badge';
-import Button from '../common/Button';
+
+const { Title, Text } = Typography;
 
 const InvoiceDetailModal = ({ invoice, onClose }) => {
   if (!invoice) return null;
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const invoiceSubtotal  = Number(invoice.subtotal ?? 0) || 0;
+  const invoiceTaxTotal  = Number(invoice.taxTotal ?? invoice.vatAmount ?? 0) || 0;
+  const invoiceGrandTotal = Number(invoice.grandTotal ?? invoice.amount ?? 0) || 0;
+
+  const lineItemColumns = [
+    {
+      title: 'Item / Service',
+      dataIndex: 'description',
+      key: 'description',
+    },
+    {
+      title: 'Qty',
+      dataIndex: 'quantity',
+      key: 'quantity',
+      align: 'center',
+      width: 60,
+    },
+    {
+      title: 'Unit Price',
+      dataIndex: 'unitPrice',
+      key: 'unitPrice',
+      align: 'right',
+      width: 100,
+      render: (val) => `$${Number(val).toFixed(2)}`,
+    },
+    {
+      title: 'Tax Rate',
+      dataIndex: 'taxRate',
+      key: 'taxRate',
+      align: 'right',
+      width: 80,
+      render: (val) => `${val}%`,
+    },
+    {
+      title: 'Amount',
+      key: 'amount',
+      align: 'right',
+      width: 100,
+      render: (_, record) =>
+        <Text strong>${(record.quantity * record.unitPrice).toFixed(2)}</Text>,
+    },
+  ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-2xl overflow-hidden animate-modal my-8">
-        {/* Modal Top Bar */}
-        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h2 className="text-base font-bold text-slate-900">{invoice.id}</h2>
-            <Badge status={invoice.status} />
+    <Modal
+      open={!!invoice}
+      onCancel={onClose}
+      footer={
+        <Space>
+          <Button icon={<PrinterOutlined />} onClick={() => window.print()}>
+            Print PDF
+          </Button>
+          <Button type="primary" onClick={onClose}>
+            Close
+          </Button>
+        </Space>
+      }
+      width={700}
+      title={
+        <Space>
+          <Text strong>{invoice.id}</Text>
+          <Badge status={invoice.status} />
+        </Space>
+      }
+      destroyOnHidden
+    >
+      {/* Company + Invoice Meta */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: '#2563eb',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 8,
+            }}
+          >
+            B
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" icon={Printer} onClick={handlePrint}>
-              Print PDF
-            </Button>
-            <button
-              onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          <Text strong style={{ display: 'block' }}>Billy.dk Solutions A/S</Text>
+          <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
+            Østergade 12, 1100 København K
+          </Text>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            CVR: 34901234 • support@billy.dk
+          </Text>
         </div>
-
-        {/* Invoice Printable View */}
-        <div className="p-8 space-y-8" id="printable-invoice">
-          {/* Company Branding & Invoice Metadata */}
-          <div className="flex justify-between items-start border-b border-slate-100 pb-6">
-            <div>
-              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg mb-2">
-                B
-              </div>
-              <h3 className="font-bold text-slate-900 text-sm">Billy.dk Solutions A/S</h3>
-              <p className="text-xs text-slate-500">Østergade 12, 1100 København K</p>
-              <p className="text-xs text-slate-500">CVR: 34901234 • support@billy.dk</p>
-            </div>
-            <div className="text-right">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">INVOICE</span>
-              <span className="text-xl font-extrabold text-blue-600">{invoice.id}</span>
-              <p className="text-xs text-slate-500 mt-2">
-                <span className="font-semibold text-slate-700">Issue Date:</span> {invoice.issueDate}
-              </p>
-              <p className="text-xs text-slate-500">
-                <span className="font-semibold text-slate-700">Due Date:</span> {invoice.dueDate}
-              </p>
-            </div>
-          </div>
-
-          {/* Customer Billed To */}
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              BILLED TO:
-            </span>
-            <p className="text-sm font-bold text-slate-800">{invoice.customerName}</p>
-            <p className="text-xs text-slate-500">{invoice.customerEmail}</p>
-          </div>
-
-          {/* Line Items Table */}
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-              <tr>
-                <th className="py-2.5 px-2">Item / Service</th>
-                <th className="py-2.5 px-2 text-center">Qty</th>
-                <th className="py-2.5 px-2 text-right">Unit Price</th>
-                <th className="py-2.5 px-2 text-right">Tax Rate</th>
-                <th className="py-2.5 px-2 text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {invoice.items?.map((item, idx) => (
-                <tr key={idx}>
-                  <td className="py-3 px-2 font-medium text-slate-800">{item.description}</td>
-                  <td className="py-3 px-2 text-center text-slate-600">{item.quantity}</td>
-                  <td className="py-3 px-2 text-right text-slate-600">${item.unitPrice.toFixed(2)}</td>
-                  <td className="py-3 px-2 text-right text-slate-600">{item.taxRate}%</td>
-                  <td className="py-3 px-2 text-right font-bold text-slate-900">
-                    ${(item.quantity * item.unitPrice).toFixed(2)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Totals Summary */}
-          <div className="flex justify-end pt-4 border-t border-slate-200">
-            <div className="w-64 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-600">
-                <span>Subtotal:</span>
-                <span className="font-semibold">${invoice.subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>VAT / Tax Total:</span>
-                <span className="font-semibold">${invoice.taxTotal.toFixed(2)}</span>
-              </div>
-              <div className="h-px bg-slate-200 my-1" />
-              <div className="flex justify-between text-slate-900 font-bold text-base">
-                <span>Grand Total:</span>
-                <span className="text-blue-600">${invoice.grandTotal.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Attachment indicator if exists */}
-          {invoice.attachment && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2 text-blue-800 font-semibold">
-                <Paperclip className="w-4 h-4" />
-                <span>Attached File: {invoice.attachment}</span>
-              </div>
-              <Button variant="ghost" size="sm" icon={Download}>
-                Download
-              </Button>
-            </div>
-          )}
+        <div style={{ textAlign: 'right' }}>
+          <Text style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', display: 'block' }}>
+            INVOICE
+          </Text>
+          <Text strong style={{ fontSize: 20, color: '#2563eb', display: 'block' }}>
+            {invoice.id}
+          </Text>
+          <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 6 }}>
+            <strong>Issue Date:</strong> {invoice.issueDate}
+          </Text>
+          <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
+            <strong>Due Date:</strong> {invoice.dueDate}
+          </Text>
         </div>
       </div>
-    </div>
+
+      {/* Billed To */}
+      <Descriptions
+        bordered
+        size="small"
+        column={1}
+        style={{ marginBottom: 20 }}
+      >
+        <Descriptions.Item label="Billed To">
+          <Text strong>{invoice.customerName}</Text>
+          <Text type="secondary" style={{ display: 'block', fontSize: 12 }}>
+            {invoice.customerEmail}
+          </Text>
+        </Descriptions.Item>
+      </Descriptions>
+
+      {/* Line Items */}
+      <Table
+        dataSource={invoice.items || []}
+        columns={lineItemColumns}
+        rowKey={(_, i) => i}
+        pagination={false}
+        size="small"
+        style={{ marginBottom: 16 }}
+      />
+
+      {/* Totals */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <div style={{ width: 260 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', color: '#64748b', fontSize: 13 }}>
+            <span>Subtotal:</span>
+            <Text strong>${invoiceSubtotal.toFixed(2)}</Text>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', color: '#64748b', fontSize: 13 }}>
+            <span>VAT / Tax Total:</span>
+            <Text strong>${invoiceTaxTotal.toFixed(2)}</Text>
+          </div>
+          <Divider style={{ margin: '8px 0' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 15 }}>
+            <Text strong>Grand Total:</Text>
+            <Text strong style={{ color: '#2563eb', fontSize: 16 }}>
+              ${invoiceGrandTotal.toFixed(2)}
+            </Text>
+          </div>
+        </div>
+      </div>
+
+      {/* Attachment */}
+      {invoice.attachment && (
+        <>
+          <Divider />
+          <div
+            style={{
+              background: '#eff6ff',
+              border: '1px solid #bfdbfe',
+              borderRadius: 8,
+              padding: '10px 14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Space>
+              <PaperClipOutlined style={{ color: '#2563eb' }} />
+              <Text strong style={{ color: '#1e40af', fontSize: 12 }}>
+                Attached File: {invoice.attachment}
+              </Text>
+            </Space>
+            <Button size="small" icon={<DownloadOutlined />}>
+              Download
+            </Button>
+          </div>
+        </>
+      )}
+    </Modal>
   );
 };
 
