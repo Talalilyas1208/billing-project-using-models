@@ -17,8 +17,8 @@ import {
   CheckCircleOutlined,
   EyeOutlined,
 } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import InvoiceStats from '../components/invoices/InvoiceStats';
-import BillyInvoiceModal from '../components/invoices/BillyInvoiceModal';
 import InvoiceDetailModal from '../components/invoices/InvoiceDetailModal';
 import NewCustomers from '../components/NewCustomers/NewCustomers';
 import Badge from '../components/common/Badge';
@@ -30,6 +30,7 @@ import {
 const { Title, Text } = Typography;
 
 const InvoicesPage = () => {
+  const navigate = useNavigate();
   const { data: invoicesResponse, refetch, isLoading } = useGetInvoicesQuery();
   const [updateInvoice] = useUpdateInvoiceMutation();
 
@@ -39,11 +40,12 @@ const InvoicesPage = () => {
     ? invoicesResponse
     : [];
 
-  const [isModalOpen, setIsModalOpen]           = useState(false);
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice]   = useState(null);
   const [statusFilter, setStatusFilter]         = useState('All');
   const [customerForm] = Form.useForm();
+
+  const handleCreateInvoice = () => navigate('/dashboard/invoices/new');
 
   const filteredInvoices = invoicesList.filter((inv) => {
     if (statusFilter === 'All') return true;
@@ -160,11 +162,9 @@ const InvoicesPage = () => {
         <div>
           <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
             <FileTextOutlined style={{ color: '#2563eb' }} />
-            Billy.dk Dynamic Invoices Overview
+            Billing project
           </Title>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            Connected to POST /api/invoice with live status tracking
-          </Text>
+         
         </div>
 
         <Space>
@@ -174,7 +174,7 @@ const InvoicesPage = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => setIsModalOpen(true)}
+            onClick={handleCreateInvoice}
           >
             Create New Invoice
           </Button>
@@ -219,20 +219,13 @@ const InvoicesPage = () => {
                 type="primary"
                 size="small"
                 icon={<PlusOutlined />}
-                onClick={() => setIsModalOpen(true)}
+                onClick={handleCreateInvoice}
               >
                 Create Invoice
               </Button>
             </div>
           ),
         }}
-      />
-
-      {/* Create Invoice Modal */}
-      <BillyInvoiceModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onOpenCreateCustomer={() => setIsCustomerModalOpen(true)}
       />
 
       {/* Create Customer Modal */}

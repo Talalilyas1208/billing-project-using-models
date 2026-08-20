@@ -7,6 +7,7 @@ import {
   Button,
   Space,
   Divider,
+  Skeleton,
 } from 'antd';
 import {
   PrinterOutlined,
@@ -14,15 +15,36 @@ import {
   PaperClipOutlined,
 } from '@ant-design/icons';
 import Badge from '../common/Badge';
+import { useGetCompanyDataQuery } from '../../redux/api/api';
 
 const { Title, Text } = Typography;
 
 const InvoiceDetailModal = ({ invoice, onClose }) => {
+  const { data: companyResponse, isLoading: companyLoading } = useGetCompanyDataQuery(undefined, {
+    skip: !invoice,
+  });
+
   if (!invoice) return null;
 
   const invoiceSubtotal  = Number(invoice.subtotal ?? 0) || 0;
   const invoiceTaxTotal  = Number(invoice.taxTotal ?? invoice.vatAmount ?? 0) || 0;
   const invoiceGrandTotal = Number(invoice.grandTotal ?? invoice.amount ?? 0) || 0;
+
+  // API returns an array with a single { company, invoice } entry
+  const companyEntry = Array.isArray(companyResponse)
+    ? companyResponse[0]
+    : Array.isArray(companyResponse?.data)
+    ? companyResponse.data[0]
+    : companyResponse;
+
+  const company = companyEntry?.company || {};
+  const companyName = company.name || '';
+  const companyAddress = company.address?.fullAddress || '';
+  const companyCvr = company.cvr || '';
+  const companyEmail = company.email || '';
+  const logoText = company.logo?.text || companyName.charAt(0) || '';
+  const logoBackground = company.logo?.backgroundColor || '#2563eb';
+  const logoColor = company.logo?.textColor || '#fff';
 
   const lineItemColumns = [
     {
@@ -94,8 +116,8 @@ const InvoiceDetailModal = ({ invoice, onClose }) => {
               width: 32,
               height: 32,
               borderRadius: 8,
-              background: '#2563eb',
-              color: '#fff',
+              background: logoBackground,
+              color: logoColor,
               fontWeight: 700,
               fontSize: 16,
               display: 'flex',
@@ -104,15 +126,21 @@ const InvoiceDetailModal = ({ invoice, onClose }) => {
               marginBottom: 8,
             }}
           >
-            B
+            {logoText}
           </div>
-          <Text strong style={{ display: 'block' }}>Billy.dk Solutions A/S</Text>
-          <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
-            Østergade 12, 1100 København K
-          </Text>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            CVR: 34901234 • support@billy.dk
-          </Text>
+          {companyLoading ? (
+            <Skeleton active title={false} paragraph={{ rows: 3, width: 160 }} />
+          ) : (
+            <>
+              <Text strong style={{ display: 'block' }}>{companyName}</Text>
+              <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
+                {companyAddress}
+              </Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                CVR: {companyCvr} • {companyEmail}
+              </Text>
+            </>
+          )}
         </div>
         <div style={{ textAlign: 'right' }}>
           <Text style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', display: 'block' }}>
