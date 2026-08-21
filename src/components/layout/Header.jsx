@@ -1,20 +1,14 @@
 import React from 'react';
-import { Layout, Avatar, Badge, Tooltip, Space, Typography } from 'antd';
+import { Layout, Badge, Tooltip, Space } from 'antd';
 import {
   BellOutlined,
-  LogoutOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
 import Input from '../common/Input';
 
 const { Header: AntHeader } = Layout;
-const { Text } = Typography;
 
-const Header = React.memo(({ userSession, onLogout }) => {
-  const initials = userSession?.name
-    ? userSession.name.charAt(0).toUpperCase()
-    : 'U';
-
+const Header = React.memo(() => {
   return (
     <AntHeader
       style={{
@@ -39,7 +33,7 @@ const Header = React.memo(({ userSession, onLogout }) => {
         size="middle"
       />
 
-      {/* Right: Bell + Avatar + Logout */}
+      {/* Right: Notifications */}
       <Space size={16} align="center">
         <Tooltip title="Notifications">
           <Badge count={1} size="small" offset={[-2, 2]}>
@@ -52,37 +46,6 @@ const Header = React.memo(({ userSession, onLogout }) => {
             />
           </Badge>
         </Tooltip>
-
-        <div style={{ width: 1, height: 24, background: '#e2e8f0' }} />
-
-        <Space size={10} align="center">
-          <Avatar
-            size={32}
-            style={{ background: '#0f172a', color: '#fff', fontWeight: 600, fontSize: 13 }}
-          >
-            {initials}
-          </Avatar>
-
-          <div style={{ lineHeight: '1.2' }}>
-            <Text strong style={{ fontSize: 12, display: 'block', color: '#1e293b' }}>
-              {userSession?.name || 'Direct Session'}
-            </Text>
-            <Text style={{ fontSize: 10, color: '#94a3b8' }}>
-              {userSession?.email || 'user@billy.dk'}
-            </Text>
-          </div>
-
-          {onLogout && (
-            <Tooltip title="Log out">
-              <LogoutOutlined
-                onClick={onLogout}
-                style={{ fontSize: 15, color: '#94a3b8', cursor: 'pointer' }}
-                onMouseEnter={(e) => (e.target.style.color = '#ef4444')}
-                onMouseLeave={(e) => (e.target.style.color = '#94a3b8')}
-              />
-            </Tooltip>
-          )}
-        </Space>
       </Space>
     </AntHeader>
   );

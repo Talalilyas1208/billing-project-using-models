@@ -147,6 +147,11 @@ export default function Newinvoice() {
     setSubmitError('');
     try {
       const values = await form.validateFields();
+      if (!Number.isFinite(grandTotal) || grandTotal <= 0) {
+        setSubmitError('Add a line item with a total greater than 0 before saving the invoice.');
+        return;
+      }
+
       const customerName = values.customerSelect || values.customerEmail?.split('@')[0] || '';
       const customerEmail = values.customerEmail || '';
       const found = customersList.find((c) => (c.name || c.Company_name) === customerName);
