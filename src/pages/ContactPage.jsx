@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Card,
   Form,
-  Input,
   Typography,
   Space,
   Row,
@@ -15,6 +14,7 @@ import {
   SendOutlined,
 } from '@ant-design/icons';
 import Button from '../components/common/Button';
+import Input from '../components/common/Input';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;

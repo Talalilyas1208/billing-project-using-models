@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
   Form,
-  Input,
   Select,
   Table,
   InputNumber,
@@ -11,6 +10,7 @@ import {
   Divider,
   Upload,
 } from 'antd';
+import Input from '../components/common/Input';
 import {
   PlusOutlined,
   DeleteOutlined,

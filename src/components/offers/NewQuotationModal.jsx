@@ -1,7 +1,8 @@
 import React from 'react';
-import { Form, Input, Select, InputNumber, DatePicker } from 'antd';
+import { Form, Select, InputNumber, DatePicker } from 'antd';
 import dayjs from 'dayjs';
 import Modals from '../Modal';
+import Input from '../common/Input';
 import { useGetCustomersQuery } from '../../redux/api/blackListApi';
 import { useGetCurrenciesQuery } from '../../redux/api/api';
 

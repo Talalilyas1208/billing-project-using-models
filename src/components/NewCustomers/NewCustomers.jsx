@@ -1,6 +1,7 @@
 import React from 'react';
-import { Form, Input } from 'antd';
+import { Form } from 'antd';
 import Button from '../common/Button';
+import Input from '../common/Input';
 import { useAddCustomerMutation } from '../../redux/api/blackListApi';
 
 export default function NewCustomers({ refetchCustomers, onClose, onTouch, form }) {
