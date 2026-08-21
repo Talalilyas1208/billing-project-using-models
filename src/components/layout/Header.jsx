@@ -1,10 +1,11 @@
 import React from 'react';
-import { Layout, Input, Avatar, Badge, Tooltip, Space, Typography } from 'antd';
+import { Layout, Avatar, Badge, Tooltip, Space, Typography } from 'antd';
 import {
   BellOutlined,
   LogoutOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
+import Input from '../common/Input';
 
 const { Header: AntHeader } = Layout;
 const { Text } = Typography;

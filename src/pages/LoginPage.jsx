@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Form,
-  Input,
   Card,
   Typography,
   Alert,
@@ -11,6 +10,7 @@ import {
   Col,
 } from 'antd';
 import Button from '../components/common/Button';
+import Input from '../components/common/Input';
 import {
   MailOutlined,
   LockOutlined,
