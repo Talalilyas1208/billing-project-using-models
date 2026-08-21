@@ -1,11 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import {
-  Table,
   Space,
   Typography,
-  Tag,
   Segmented,
-  Modal,
   Form,
   Tooltip,
 } from 'antd';
@@ -23,23 +20,23 @@ import NewCustomers from '../components/NewCustomers/NewCustomers';
 import Modals from '../components/Modal';
 import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
+import EmptyState from '../components/common/EmptyState';
+import PageHeader from '../components/layout/PageHeader';
+import DataTable from '../components/table/DataTable';
+import { normalizeApiResponse } from '../utils/apiNormalization';
 import {
   useGetInvoicesQuery,
   useUpdateInvoiceMutation,
 } from '../redux/api/api';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const InvoicesPage = () => {
   const navigate = useNavigate();
   const { data: invoicesResponse, refetch, isLoading } = useGetInvoicesQuery();
   const [updateInvoice] = useUpdateInvoiceMutation();
 
-  const invoicesList = Array.isArray(invoicesResponse?.data)
-    ? invoicesResponse.data
-    : Array.isArray(invoicesResponse)
-    ? invoicesResponse
-    : [];
+  const invoicesList = normalizeApiResponse(invoicesResponse);
 
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice]   = useState(null);
@@ -159,38 +156,20 @@ const InvoicesPage = () => {
 
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-      {/* Page Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 16,
-          marginBottom: 24,
-        }}
-      >
-        <div>
-          <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <FileTextOutlined style={{ color: '#2563eb' }} />
-            Billing project
-          </Title>
-         
-        </div>
-
-        <Space>
+      <PageHeader
+        title="Billing project"
+        icon={FileTextOutlined}
+        additionalActions={
           <Button icon={<ReloadOutlined />} onClick={() => refetch()}>
             Sync API
           </Button>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleCreateInvoice}
-          >
+        }
+        action={
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateInvoice}>
             Create New Invoice
           </Button>
-        </Space>
-      </div>
+        }
+      />
 
       {/* KPI Stats */}
       <InvoiceStats invoices={invoicesList} />
@@ -205,7 +184,7 @@ const InvoicesPage = () => {
       </div>
 
       {/* Table */}
-      <Table
+      <DataTable
         dataSource={filteredInvoices}
         columns={columns}
         rowKey={(record) => record.id || record.invoiceNumber}
@@ -220,21 +199,21 @@ const InvoicesPage = () => {
         pagination={{ pageSize: 10, showSizeChanger: true }}
         locale={{
           emptyText: (
-            <div style={{ padding: '40px 0', textAlign: 'center' }}>
-              <FileTextOutlined style={{ fontSize: 40, color: '#cbd5e1', marginBottom: 12 }} />
-              <div style={{ fontWeight: 600, color: '#475569' }}>No invoices found</div>
-              <div style={{ color: '#94a3b8', fontSize: 12, margin: '8px 0 16px' }}>
-                No invoices matching filter "{statusFilter}"
-              </div>
-              <Button
-                type="primary"
-                size="small"
-                icon={<PlusOutlined />}
-                onClick={handleCreateInvoice}
-              >
-                Create Invoice
-              </Button>
-            </div>
+            <EmptyState
+              icon={FileTextOutlined}
+              title="No invoices found"
+              description={`No invoices matching filter "${statusFilter}"`}
+              action={
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<PlusOutlined />}
+                  onClick={handleCreateInvoice}
+                >
+                  Create Invoice
+                </Button>
+              }
+            />
           ),
         }}
       />

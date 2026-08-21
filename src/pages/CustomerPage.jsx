@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Space, Typography, Tag, Form } from 'antd';
+import { Space, Typography, Form } from 'antd';
 import Button from '../components/common/Button';
 import {
   TeamOutlined,
@@ -11,8 +11,13 @@ import {
 import { useGetCustomersQuery } from '../redux/api/blackListApi';
 import Modals from '../components/Modal';
 import NewCustomers from '../components/NewCustomers/NewCustomers';
+import Badge from '../components/common/Badge';
+import EmptyState from '../components/common/EmptyState';
+import PageHeader from '../components/layout/PageHeader';
+import DataTable from '../components/table/DataTable';
+import { normalizeApiResponse } from '../utils/apiNormalization';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const CustomerPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,11 +29,7 @@ const CustomerPage = () => {
     refetch: refetchCustomers,
   } = useGetCustomersQuery({ page: 1, limit: 10 });
 
-  const customers = Array.isArray(response)
-    ? response
-    : Array.isArray(response?.data)
-    ? response.data
-    : [];
+  const customers = normalizeApiResponse(response);
 
   const handleOpenModal  = () => setIsModalOpen(true);
   const handleCloseModal = () => {
@@ -79,42 +80,23 @@ const CustomerPage = () => {
       title: 'Status',
       key: 'status',
       render: (_, record) => (
-        <Tag color="success" style={{ borderRadius: 20, fontWeight: 600 }}>
-          {record.status || 'Active'}
-        </Tag>
+        <Badge status={record.status || 'Active'} />
       ),
     },
   ];
 
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-      {/* Page Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 16,
-          marginBottom: 24,
-        }}
-      >
-        <div>
-          <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <TeamOutlined style={{ color: '#2563eb' }} />
-            Customer Directory
-          </Title>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            Manage your client profiles, billing emails, and customer directory
-          </Text>
-        </div>
-
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenModal}>
-          Create Customer
-        </Button>
-      </div>
-
-      {/* Create Customer Modal */}
+      <PageHeader
+        title="Customer Directory"
+        icon={TeamOutlined}
+        subtitle="Manage your client profiles, billing emails, and customer directory"
+        action={
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenModal}>
+            Create Customer
+          </Button>
+        }
+      />
       <Modals
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -130,7 +112,7 @@ const CustomerPage = () => {
       </Modals>
 
       {/* Customers Table */}
-      <Table
+      <DataTable
         dataSource={customers}
         columns={columns}
         rowKey="id"
@@ -145,21 +127,21 @@ const CustomerPage = () => {
         pagination={{ pageSize: 10, showSizeChanger: true }}
         locale={{
           emptyText: (
-            <div style={{ padding: '40px 0', textAlign: 'center' }}>
-              <TeamOutlined style={{ fontSize: 40, color: '#cbd5e1', marginBottom: 12 }} />
-              <div style={{ fontWeight: 600, color: '#475569' }}>No customers found</div>
-              <div style={{ color: '#94a3b8', fontSize: 12, margin: '8px 0 16px' }}>
-                You haven't added any customers yet.
-              </div>
-              <Button
-                type="primary"
-                size="small"
-                icon={<UserAddOutlined />}
-                onClick={handleOpenModal}
-              >
-                Create First Customer
-              </Button>
-            </div>
+            <EmptyState
+              icon={TeamOutlined}
+              title="No customers found"
+              description="You haven't added any customers yet."
+              action={
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<UserAddOutlined />}
+                  onClick={handleOpenModal}
+                >
+                  Create First Customer
+                </Button>
+              }
+            />
           ),
         }}
       />

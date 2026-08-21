@@ -15,8 +15,9 @@ import {
 } from '@ant-design/icons';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
+import PageHeader from '../components/layout/PageHeader';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { TextArea } = Input;
 
 const ContactPage = () => {
@@ -52,16 +53,12 @@ const ContactPage = () => {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto' }}>
-      {/* Page Header */}
-      <div style={{ marginBottom: 24 }}>
-        <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <PhoneOutlined style={{ color: '#2563eb' }} />
-          Support &amp; Accounting Contact
-        </Title>
-        <Text type="secondary" style={{ fontSize: 12 }}>
-          Get in touch with Billy.dk accounting advisors and technical support.
-        </Text>
-      </div>
+      <PageHeader
+        maxWidth={900}
+        title="Support &amp; Accounting Contact"
+        icon={PhoneOutlined}
+        subtitle="Get in touch with Billy.dk accounting advisors and technical support."
+      />
 
       <Row gutter={[24, 24]}>
         {/* Contact Info Card */}
