@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Space, Typography, Tooltip, Modal, Form, App as AntApp } from 'antd';
+import { Space, Typography, Tooltip, Modal, Form, App as AntApp } from 'antd';
 import Button from '../components/common/Button';
 import {
   AppstoreOutlined,
@@ -10,15 +10,18 @@ import {
 import ManageProductForm from '../components/products/ManageProductForm';
 import Modals from '../components/Modal';
 import { useGetProductsQuery, useDeleteProductMutation } from '../redux/api/blackListApi';
+import PageHeader from '../components/layout/PageHeader';
+import DataTable from '../components/table/DataTable';
+import { normalizeApiResponse } from '../utils/apiNormalization';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const ProductsPage = () => {
   const [form] = Form.useForm();
   const { data: response = {}, isLoading, refetch } = useGetProductsQuery({ page: 1, limit: 10 });
   const [deleteProduct] = useDeleteProductMutation();
 
-  const products = Array.isArray(response) ? response : response.data || [];
+  const products = normalizeApiResponse(response);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -133,43 +136,24 @@ const ProductsPage = () => {
   return (
     <AntApp>
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-        {/* Page Header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 24,
-          }}
-        >
-          <div>
-            <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <AppstoreOutlined style={{ color: '#2563eb' }} />
-              Products Catalog
-            </Title>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              Consuming blackListApi &amp; api RTK Query endpoints
-            </Text>
-          </div>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenAdd}>
-            Add New Product
-          </Button>
-        </div>
+        <PageHeader
+          title="Products Catalog"
+          icon={AppstoreOutlined}
+          subtitle="Consuming blackListApi &amp; api RTK Query endpoints"
+          action={
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenAdd}>
+              Add New Product
+            </Button>
+          }
+        />
 
         {/* Products Table */}
-        <Table
+        <DataTable
           dataSource={products}
           columns={columns}
           rowKey={(record) => record.id}
           loading={isLoading}
           size="middle"
-          style={{
-            background: '#fff',
-            borderRadius: 12,
-            border: '1px solid #e2e8f0',
-            overflow: 'hidden',
-          }}
-          pagination={{ pageSize: 10, showSizeChanger: true }}
         />
 
         {/* Manage Product Modal */}

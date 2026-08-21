@@ -26,6 +26,7 @@ import Config from '../components/Config';
 import NewCustomers from '../components/NewCustomers/NewCustomers';
 import ManageProductForm from '../components/products/ManageProductForm';
 import InvoiceHeader from '../components/NewInvoice/InvoiceHeader';
+import { normalizeApiResponse } from '../utils/apiNormalization';
 import {
   useGetCurrenciesQuery,
   useGetPaymentDeadlinesQuery,
@@ -64,41 +65,12 @@ export default function Newinvoice() {
     refetch: refetchProducts,
   } = useGetProductsQuery({ page: 1, limit: 100 });
 
-  const customersList = Array.isArray(customersResponse?.data)
-    ? customersResponse.data
-    : Array.isArray(customersResponse)
-    ? customersResponse
-    : [];
-
-  const productsList = Array.isArray(productsResponse?.data)
-    ? productsResponse.data
-    : Array.isArray(productsResponse)
-    ? productsResponse
-    : [];
-
-  const currencyList = Array.isArray(currenciesRes?.data)
-    ? currenciesRes.data
-    : Array.isArray(currenciesRes)
-    ? currenciesRes
-    : [];
-
-  const deadlineList = Array.isArray(deadlinesRes?.data)
-    ? deadlinesRes.data
-    : Array.isArray(deadlinesRes)
-    ? deadlinesRes
-    : [];
-
-  const vatList = Array.isArray(vatRes?.data)
-    ? vatRes.data
-    : Array.isArray(vatRes)
-    ? vatRes
-    : [];
-
-  const approveButtonsList = Array.isArray(actionButtonsRes?.data)
-    ? actionButtonsRes.data
-    : Array.isArray(actionButtonsRes)
-    ? actionButtonsRes
-    : [];
+  const customersList = normalizeApiResponse(customersResponse);
+  const productsList = normalizeApiResponse(productsResponse);
+  const currencyList = normalizeApiResponse(currenciesRes);
+  const deadlineList = normalizeApiResponse(deadlinesRes);
+  const vatList = normalizeApiResponse(vatRes);
+  const approveButtonsList = normalizeApiResponse(actionButtonsRes);
 
   const [items, setItems] = useState([
     { id: 1, description: 'Software Consulting & Architecture', quantity: 1, unitPrice: 1800, taxRate: 25 },

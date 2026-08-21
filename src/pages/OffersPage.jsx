@@ -1,15 +1,19 @@
 import React, { useMemo, useState } from 'react';
-import { Table, Typography, Tag } from 'antd';
+import { Typography } from 'antd';
 import Button from '../components/common/Button';
 import { FileDoneOutlined, PlusOutlined } from '@ant-design/icons';
 import { useGetProductsQuery } from '../redux/api/blackListApi';
 import NewQuotationModal from '../components/offers/NewQuotationModal';
+import Badge from '../components/common/Badge';
+import PageHeader from '../components/layout/PageHeader';
+import DataTable from '../components/table/DataTable';
+import { normalizeApiResponse } from '../utils/apiNormalization';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const OffersPage = () => {
   const { data: response = {}, isLoading } = useGetProductsQuery({ page: 1, limit: 10 });
-  const products = Array.isArray(response) ? response : response.data || [];
+  const products = normalizeApiResponse(response);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [manualOffers, setManualOffers] = useState([]);
@@ -69,12 +73,7 @@ const OffersPage = () => {
       dataIndex: 'status',
       key: 'status',
       render: (val) => (
-        <Tag
-          color={val === 'Accepted' ? 'success' : 'processing'}
-          style={{ borderRadius: 20, fontWeight: 600, fontSize: 11 }}
-        >
-          {val}
-        </Tag>
+        <Badge status={val} />
       ),
     },
     {
@@ -91,43 +90,25 @@ const OffersPage = () => {
 
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-      {/* Page Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 24,
-        }}
-      >
-        <div>
-          <Title level={4} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <FileDoneOutlined style={{ color: '#2563eb' }} />
-            Quotations &amp; Offers
-          </Title>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            Dynamic offer data loaded via RTK Query API
-          </Text>
-        </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)}>
-          New Quotation
-        </Button>
-      </div>
+      <PageHeader
+        title="Quotations &amp; Offers"
+        icon={FileDoneOutlined}
+        subtitle="Dynamic offer data loaded via RTK Query API"
+        action={
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)}>
+            New Quotation
+          </Button>
+        }
+      />
 
       {/* Offers Table */}
-      <Table
+      <DataTable
         dataSource={offers}
         columns={columns}
         rowKey="id"
         loading={isLoading}
         size="middle"
-        style={{
-          background: '#fff',
-          borderRadius: 12,
-          border: '1px solid #e2e8f0',
-          overflow: 'hidden',
-        }}
-        pagination={{ pageSize: 10 }}
+        pagination={{ pageSize: 10, showSizeChanger: false }}
       />
 
       {/* New Quotation Modal */}
