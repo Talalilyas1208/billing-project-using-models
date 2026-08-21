@@ -8,7 +8,7 @@ export default function Modals({
   onCancel,
   title,
   width = 640,
-  destroyOnClose = true,
+  destroyOnHidden = true,
   children,
   ...rest
 }) {
@@ -18,7 +18,7 @@ export default function Modals({
       onCancel={onCancel || onClose}
       title={title}
       width={width}
-      destroyOnClose={destroyOnClose}
+      destroyOnHidden={destroyOnHidden}
       {...rest}
     >
       {children}

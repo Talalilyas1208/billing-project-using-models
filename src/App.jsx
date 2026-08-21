@@ -2,6 +2,7 @@ import React, { Suspense, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Spin } from "antd";
 import DashboardLayout from "./components/layout/DashboardLayout";
+import { logoutUser } from "./firebase/config";
 
 const LoginPage = React.lazy(() => import("./pages/LoginPage"));
 const InvoicesPage = React.lazy(() => import("./pages/InvoicesPage"));
@@ -38,7 +39,12 @@ function App() {
     setUserSession(session);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch (e) {
+      console.error("Firebase sign out failed:", e);
+    }
     try {
       sessionStorage.removeItem("direct_user_session");
     } catch (e) {

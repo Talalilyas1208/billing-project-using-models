@@ -9,9 +9,9 @@ const { Content } = Layout;
 const DashboardLayout = React.memo(({ userSession, onLogout }) => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sidebar />
+      <Sidebar userSession={userSession} onLogout={onLogout} />
       <Layout>
-        <Header userSession={userSession} onLogout={onLogout} />
+        <Header />
         <Content
           style={{
             padding: 32,

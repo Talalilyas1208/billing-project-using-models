@@ -31,12 +31,17 @@ import {
 
 const { Text } = Typography;
 
+const getInvoiceTotal = (invoice) => Number(invoice.amount ?? invoice.grandTotal);
+
 const InvoicesPage = () => {
   const navigate = useNavigate();
   const { data: invoicesResponse, refetch, isLoading } = useGetInvoicesQuery();
   const [updateInvoice] = useUpdateInvoiceMutation();
 
-  const invoicesList = normalizeApiResponse(invoicesResponse);
+  const invoicesList = normalizeApiResponse(invoicesResponse).filter((invoice) => {
+    const total = getInvoiceTotal(invoice);
+    return Number.isFinite(total) && total > 0;
+  });
 
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice]   = useState(null);
@@ -172,7 +177,7 @@ const InvoicesPage = () => {
       />
 
       {/* KPI Stats */}
-      <InvoiceStats invoices={invoicesList} />
+      {invoicesList.length > 0 && <InvoiceStats invoices={invoicesList} />}
 
       {/* Status Filter */}
       <div style={{ marginBottom: 16 }}>
