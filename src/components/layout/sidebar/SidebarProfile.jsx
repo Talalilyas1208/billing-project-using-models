@@ -11,7 +11,7 @@ const { Text } = Typography;
 const SidebarProfile = ({ userSession, onLogout }) => {
   const [profileOpen, setProfileOpen] = useState(false);
   const userName = userSession?.name || 'Direct Session';
-  const userEmail = userSession?.email || 'user@billy.dk';
+  const userEmail = userSession?.email || 'user@billingapp.com';
   const initials = userName
     .split(' ')
     .filter(Boolean)
