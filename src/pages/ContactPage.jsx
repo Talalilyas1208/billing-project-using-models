@@ -25,7 +25,7 @@ const ContactPage = () => {
 
   const handleSend = () => {
     form.validateFields().then(() => {
-      alert('Message sent to Billy.dk support!');
+      alert('Message sent to billing app support!');
       form.resetFields();
     });
   };
@@ -40,13 +40,13 @@ const ContactPage = () => {
     {
       icon: <MailOutlined style={{ color: '#059669' }} />,
       bg: '#f0fdf4',
-      title: 'support@billy.dk',
+      title: 'support@billingapp.com',
       sub: 'Avg. response time: 15 mins',
     },
     {
       icon: <EnvironmentOutlined style={{ color: '#475569' }} />,
       bg: '#f8fafc',
-      title: 'Billy.dk Headquarters',
+      title: 'billing app Headquarters',
       sub: 'Østergade 12, 1100 København K, Denmark',
     },
   ];
@@ -57,7 +57,7 @@ const ContactPage = () => {
         maxWidth={900}
         title="Support &amp; Accounting Contact"
         icon={PhoneOutlined}
-        subtitle="Get in touch with Billy.dk accounting advisors and technical support."
+        subtitle="Get in touch with billing app accounting advisors and technical support."
       />
 
       <Row gutter={[24, 24]}>

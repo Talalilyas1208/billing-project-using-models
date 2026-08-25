@@ -1,4 +1,4 @@
-# 💼 BillEase — Modern Billing & Invoice Management Platform
+# 💼 Billing App — Modern Billing & Invoice Management Platform
 
 [![React](https://img.shields.io/badge/React-19.2.7-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.1.1-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
