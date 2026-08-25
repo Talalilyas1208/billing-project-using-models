@@ -176,7 +176,7 @@ const LoginPage = ({ onAuthenticate }) => {
             B
           </div>
           <Title level={4} style={{ margin: 0, fontWeight: 800, color: '#0f172a' }}>
-            {isRegisterMode ? 'Create Billy.dk Account' : 'Sign in to Billy.dk'}
+            {isRegisterMode ? 'Create billing app Account' : 'Sign in to billing app'}
           </Title>
           <Text type="secondary" style={{ fontSize: 12 }}>
             {isRegisterMode
