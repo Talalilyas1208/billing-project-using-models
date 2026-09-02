@@ -8,7 +8,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Environment files
+.env
 .env.*
+!.env.example
 gemini_agent/.env
 
 # Dependencies & Build output
